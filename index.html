@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>城市契合度测试</title>
+    <style>
+        :root {
+            --primary: #2c3e7a;
+            --primary-light: #4a6ab8;
+            --accent: #f0a04b;
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 12px 40px;
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .header {
+            text-align: center;
+            padding: 24px 0 20px;
+            position: relative;
+        }
+        .header-icon {
+            font-size: 42px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+        .header p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .progress-wrap {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--accent));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .step-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px 20px;
+            margin-bottom: 16px;
+            animation: fadeInUp 0.4s ease;
+            display: none;
+        }
+        .step-card.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+        .form-group .hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        select,
+        input[type="date"],
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-family: var(--font);
+            background: #fafafa;
+            color: var(--text);
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 52px;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23636e72' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select:focus,
+        input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 106, 184, 0.15);
+            background: #fff;
+        }
+        input[type="date"] {
+            cursor: pointer;
+            min-height: 52px;
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: var(--radius-sm);
+            background: #fafafa;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-size: 0.95rem;
+            text-align: left;
+            min-height: 56px;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+            font-family: var(--font);
+            color: var(--text);
+            width: 100%;
+        }
+        .option-btn:hover {
+            border-color: var(--primary-light);
+            background: #f0f4ff;
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        .option-btn .option-icon {
+            font-size: 1.4rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .option-btn .option-text {
+            flex: 1;
+        }
+        .option-btn .option-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            font-size: 12px;
+            color: #fff;
+        }
+        .option-btn.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+            box-shadow: 0 2px 12px rgba(44, 62, 122, 0.12);
+        }
+        .option-btn.selected .option-check {
+            background: var(--primary);
+            border-color: var(--primary);
+            content: '✓';
+        }
+        .option-btn.selected .option-check::after {
+            content: '✓';
+            font-weight: 700;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font);
+            min-height: 52px;
+            letter-spacing: 0.5px;
+            text-align: center;
+            user-select: none;
+            -webkit-user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(44, 62, 122, 0.3);
+        }
+        .btn-primary:hover {
+            background: #1e2d5e;
+        }
+        .btn-primary:disabled {
+            background: #b0b0b0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: var(--text);
+            border: 2px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background: #e5e5e5;
+        }
+
+        .result-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px 22px;
+            animation: fadeInUp 0.5s ease;
+            display: none;
+        }
+        .result-card.active {
+            display: block;
+        }
+        .result-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #5a4200;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        .result-city-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        .result-city-sub {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .result-tag {
+            background: #f0f4ff;
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .result-tag.match {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .result-desc {
+            background: #fafbfc;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #444;
+            border-left: 4px solid var(--accent);
+            margin-bottom: 18px;
+            text-align: justify;
+            word-break: break-word;
+        }
+        .result-others {
+            display: flex;
+            gap: 12px;
+        }
+        .result-other-card {
+            flex: 1;
+            background: #f8f9fb;
+            border-radius: var(--radius-sm);
+            padding: 14px 12px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        .result-other-rank {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .result-other-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .btn-restart {
+            margin-top: 20px;
+            width: 100%;
+            background: #f0f0f0;
+            color: var(--text);
+            border: 2px solid #ddd;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all var(--transition);
+            min-height: 50px;
+        }
+        .btn-restart:hover {
+            background: #e5e5e5;
+        }
+        .btn-restart:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding: 10px 8px 30px;
+                font-size: 14px;
+            }
+            .step-card {
+                padding: 18px 14px;
+            }
+            .header h1 {
+                font-size: 1.25rem;
+            }
+            .result-city-name {
+                font-size: 1.6rem;
+            }
+            .option-btn {
+                padding: 12px 12px;
+                font-size: 0.85rem;
+                min-height: 48px;
+            }
+            .btn {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+                min-height: 46px;
+            }
+            .result-desc {
+                font-size: 0.82rem;
+                padding: 12px;
+            }
+        }
+        @media (min-width: 481px) {
+            body {
+                padding: 24px 20px 50px;
+            }
+            .step-card {
+                padding: 28px 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div class="header">
+            <span class="header-icon">🏙️</span>
+            <h1>城市契合度测试</h1>
+            <p>找到与你灵魂最匹配的那座城</p>
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- 步骤1: 出生城市 -->
+        <div class="step-card active" id="step0">
+            <div class="step-label">第 1 步 / 共 8 步</div>
+            <div class="step-title">📍 你的出生城市是？</div>
+            <div class="form-group">
+                <label for="birthCity">输入你出生的城市（精确到市）</label>
+                <input type="text" id="birthCity" list="cityList" placeholder="例如：成都" autocomplete="off">
+                <datalist id="cityList"></datalist>
+                <div class="hint">可手动输入，或从列表选择（至少2个字）</div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="nextFromCity" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤2: 出生日期 -->
+        <div class="step-card" id="step1">
+            <div class="step-label">第 2 步 / 共 8 步</div>
+            <div class="step-title">🎂 你的出生日期是？</div>
+            <div class="form-group">
+                <label for="birthDate">选择你的出生日期</label>
+                <input type="date" id="birthDate" min="1950-01-01" max="2020-12-31">
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep0">← 上一步</button>
+                <button class="btn btn-primary" id="nextFromDate" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤3: 人文偏好 -->
+        <div class="step-card" id="step2">
+            <div class="step-label">第 3 步 / 共 8 步</div>
+            <div class="step-title">🏛️ 你喜欢什么样的人文氛围？</div>
+            <div class="options-group" data-q="humanities">
+                <button class="option-btn" data-value="历史底蕴">
+                    <span class="option-icon">📜</span>
+                    <span class="option-text">深厚历史底蕴，古韵悠长</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="现代都市">
+                    <span class="option-icon">🏙️</span>
+                    <span class="option-text">现代都市感，活力四射</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="自然田园">
+                    <span class="option-icon">🌿</span>
+                    <span class="option-text">自然田园风，宁静惬意</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="多元融合">
+                    <span class="option-icon">🌏</span>
+                    <span class="option-text">多元文化交融，开放包容</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep1">← 上一步</button>
+                <button class="btn btn-primary next-from-option" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤4: 美食偏好 -->
+        <div class="step-card" id="step3">
+            <div class="step-label">第 4 步 / 共 8 步</div>
+            <div class="step-title">🍜 你对美食的态度？</div>
+            <div class="options-group" data-q="food">
+                <button class="option-btn" data-value="5">
+                    <span class="option-icon">🤤</span>
+                    <span class="option-text">超级热爱，无美食不欢！</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="3">
+                    <span class="option-icon">😊</span>
+                    <span class="option-text">一般喜欢，好吃就行</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="1">
+                    <span class="option-icon">😐</span>
+                    <span class="option-text">不太在意，吃饱就好</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep2">← 上一步</button>
+                <button class="btn btn-primary next-from-option" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤5: 天气偏好 -->
+        <div class="step-card" id="step4">
+            <div class="step-label">第 5 步 / 共 8 步</div>
+            <div class="step-title">🌤️ 你理想中的天气？</div>
+            <div class="options-group" data-q="weather">
+                <button class="option-btn" data-value="四季如春">
+                    <span class="option-icon">🌸</span>
+                    <span class="option-text">四季如春，温暖宜人</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="四季分明">
+                    <span class="option-icon">🍂</span>
+                    <span class="option-text">四季分明，各有韵味</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="温暖湿润">
+                    <span class="option-icon">🌊</span>
+                    <span class="option-text">温暖湿润，空气清新</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep3">← 上一步</button>
+                <button class="btn btn-primary next-from-option" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤6: 气候舒适度 -->
+        <div class="step-card" id="step5">
+            <div class="step-label">第 6 步 / 共 8 步</div>
+            <div class="step-title">🌡️ 你喜欢什么样的气候？</div>
+            <div class="options-group" data-q="climate">
+                <button class="option-btn" data-value="温暖舒适">
+                    <span class="option-icon">☀️</span>
+                    <span class="option-text">温暖舒适，体感极佳</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="凉爽干燥">
+                    <span class="option-icon">🍃</span>
+                    <span class="option-text">凉爽干燥，清爽宜人</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="湿热">
+                    <span class="option-icon">💦</span>
+                    <span class="option-text">湿热气候，热带风情</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep4">← 上一步</button>
+                <button class="btn btn-primary next-from-option" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤7: 靠海偏好 -->
+        <div class="step-card" id="step6">
+            <div class="step-label">第 7 步 / 共 8 步</div>
+            <div class="step-title">🌊 你希望城市靠海吗？</div>
+            <div class="options-group" data-q="coastal">
+                <button class="option-btn" data-value="yes">
+                    <span class="option-icon">🏖️</span>
+                    <span class="option-text">非常希望，面朝大海</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="any">
+                    <span class="option-icon">🤷</span>
+                    <span class="option-text">无所谓，靠不靠海都行</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="no">
+                    <span class="option-icon">🏔️</span>
+                    <span class="option-text">不喜欢海边，更爱内陆</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep5">← 上一步</button>
+                <button class="btn btn-primary next-from-option" disabled>下一步 →</button>
+            </div>
+        </div>
+
+        <!-- 步骤8: 热闹偏好 -->
+        <div class="step-card" id="step7">
+            <div class="step-label">第 8 步 / 共 8 步</div>
+            <div class="step-title">🎉 你喜欢热闹还是安静？</div>
+            <div class="options-group" data-q="bustle">
+                <button class="option-btn" data-value="5">
+                    <span class="option-icon">🎊</span>
+                    <span class="option-text">喜欢热闹繁华，活力满满</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="3">
+                    <span class="option-icon">😌</span>
+                    <span class="option-text">适中就好，动静皆宜</span>
+                    <span class="option-check"></span>
+                </button>
+                <button class="option-btn" data-value="1">
+                    <span class="option-icon">🧘</span>
+                    <span class="option-text">喜欢安静，远离喧嚣</span>
+                    <span class="option-check"></span>
+                </button>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="backToStep6">← 上一步</button>
+                <button class="btn btn-primary" id="showResult" disabled>查看结果 ✨</button>
+            </div>
+        </div>
+
+        <!-- 结果页面 -->
+        <div class="result-card" id="resultCard">
+            <div class="result-badge">🏆 最佳契合城市</div>
+            <div class="result-city-name" id="resultCityName"></div>
+            <div class="result-city-sub" id="resultCitySub"></div>
+            <div class="result-tags" id="resultTags"></div>
+            <div class="result-desc" id="resultDesc"></div>
+            <div class="result-others">
+                <div class="result-other-card">
+                    <div class="result-other-rank">🥈 第二推荐</div>
+                    <div class="result-other-name" id="resultSecond"></div>
+                </div>
+                <div class="result-other-card">
+                    <div class="result-other-rank">🥉 第三推荐</div>
+                    <div class="result-other-name" id="resultThird"></div>
+                </div>
+            </div>
+            <button class="btn-restart" id="restartBtn">🔄 重新测试</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 城市数据库（推荐用，约30个）
+            const cityDB = [
+                { name: "成都", humanities: "历史底蕴", food: 5, weather: "四季分明", climate: "温暖舒适", coastal: false, bustle: 4, desc: "成都，一座拥有三千年历史的文化名城，古蜀文明的发源地。这里既有武侯祠、杜甫草堂的千年文脉，又有宽窄巷子、锦里的市井烟火。成都以“天府之国”的美誉闻名，生活节奏悠闲，被誉为“来了就不想走的城市”。美食文化更是独步天下，火锅、串串、川菜让人欲罢不能。", tagline: "天府之国，慢生活之都" },
+                { name: "杭州", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "温暖舒适", coastal: false, bustle: 3, desc: "杭州，江南水乡的典范，素有“人间天堂”的美誉。西湖的柔美、灵隐寺的禅意、龙井的茶香，处处流淌着诗意与雅致。这里人文荟萃，宋韵文化深厚，同时又是数字经济的前沿阵地。四季分明的气候让每个季节都有独特的美景，不靠海却拥有西湖的温润。", tagline: "人间天堂，诗意江南" },
+                { name: "厦门", humanities: "多元融合", food: 4, weather: "温暖湿润", climate: "温暖舒适", coastal: true, bustle: 3, desc: "厦门，一座文艺与浪漫并存的海滨城市。鼓浪屿的万国建筑、环岛路的椰风海韵、沙坡尾的文艺小店，处处散发着迷人的气息。这里气候温暖湿润，四季如春，海鲜美食丰富多样。闽南文化与海洋文化在此交融，形成了独特的人文魅力。", tagline: "海上花园，文艺之城" },
+                { name: "青岛", humanities: "多元融合", food: 3, weather: "四季分明", climate: "凉爽干燥", coastal: true, bustle: 3, desc: "青岛，红瓦绿树、碧海蓝天的海滨名城。这里既有德式建筑的历史印记，又有现代化的都市风貌。青岛啤酒闻名天下，海鲜美食令人垂涎。气候凉爽干燥，夏季尤其宜人，是著名的避暑胜地。靠海而居，推窗见海，生活节奏舒适惬意。", tagline: "红瓦绿树，啤酒之城" },
+                { name: "大连", humanities: "多元融合", food: 3, weather: "四季分明", climate: "凉爽干燥", coastal: true, bustle: 3, desc: "大连，北方明珠，浪漫之都。这座城市依山傍海，拥有绵长的海岸线和优美的自然风光。大连气候凉爽宜人，夏季不闷热，冬季有暖气，四季舒适度都很高。作为东北最具活力的城市之一，这里既有北方的豪爽，又有海滨的浪漫。", tagline: "北方明珠，浪漫海滨" },
+                { name: "昆明", humanities: "自然田园", food: 3, weather: "四季如春", climate: "温暖舒适", coastal: false, bustle: 2, desc: "昆明，名副其实的“春城”，四季如春的气候让这里成为天然的宜居天堂。年平均气温15℃左右，冬无严寒、夏无酷暑。滇池的浩渺、石林的奇峻、鲜花市场的缤纷，处处是大自然的馈赠。生活节奏舒缓，适合追求宁静与自然的人。", tagline: "春城无处不飞花" },
+                { name: "大理", humanities: "自然田园", food: 2, weather: "四季如春", climate: "温暖舒适", coastal: false, bustle: 1, desc: "大理，风花雪月的浪漫之地。苍山洱海之间，白族村落散落其间，田园风光如诗如画。这里四季如春，阳光充沛，是许多人心中“诗与远方”的代名词。大理古城融合了历史与文艺气息，生活节奏极慢，适合真正想逃离喧嚣、回归自然的人。", tagline: "风花雪月，苍山洱海" },
+                { name: "三亚", humanities: "自然田园", food: 3, weather: "温暖湿润", climate: "湿热", coastal: true, bustle: 3, desc: "三亚，中国最南端的热带海滨城市，拥有全中国最好的阳光、沙滩和海水。亚龙湾、海棠湾、天涯海角，处处是度假天堂。这里全年温暖，热带水果和海鲜美食丰富多样。靠海而居，每一天都像在度假，是热爱海洋和热带风情的人的理想之地。", tagline: "东方夏威夷，热带天堂" },
+                { name: "海口", humanities: "自然田园", food: 3, weather: "温暖湿润", climate: "湿热", coastal: true, bustle: 2, desc: "海口，海南省会，一座充满热带风情的滨海城市。这里气候温暖湿润，椰林遍布，生活节奏悠闲。相比三亚的旅游氛围，海口更具生活气息和烟火味。骑楼老街记录着百年历史，海鲜市场和夜市美食让人流连忘返。", tagline: "椰城海韵，悠闲之都" },
+                { name: "珠海", humanities: "现代都市", food: 3, weather: "温暖湿润", climate: "温暖舒适", coastal: true, bustle: 3, desc: "珠海，一座花园式的海滨城市，被誉为“百岛之市”。这里环境优美，空气质量常年位居全国前列。情侣路蜿蜒在海边，日月贝歌剧院造型独特。珠海生活节奏适中，既不喧嚣也不冷清，气候温暖舒适，是宜居宜业的好选择。", tagline: "百岛之市，花园城市" },
+                { name: "深圳", humanities: "现代都市", food: 4, weather: "温暖湿润", climate: "温暖舒适", coastal: true, bustle: 5, desc: "深圳，中国最年轻、最具活力的超一线城市。从一个小渔村到国际化大都市，深圳创造了世界城市发展史上的奇迹。这里充满创新精神和创业氛围，科技企业云集。美食来自五湖四海，包容性极强。靠海而建，公园遍布，是奋斗者的天堂。", tagline: "创新之城，活力之都" },
+                { name: "广州", humanities: "多元融合", food: 5, weather: "温暖湿润", climate: "湿热", coastal: false, bustle: 5, desc: "广州，千年商都，岭南文化的中心。这里美食文化冠绝天下，“食在广州”绝非虚名，早茶、烧腊、靓汤让人回味无穷。广州气候温暖湿润，四季常绿，花城美誉名副其实。作为一线城市，广州既有繁华的都市生活，又保留了浓厚的市井烟火气。", tagline: "千年商都，美食天堂" },
+                { name: "上海", humanities: "现代都市", food: 4, weather: "四季分明", climate: "温暖舒适", coastal: true, bustle: 5, desc: "上海，东方明珠，国际化大都市。外滩的万国建筑博览群、陆家嘴的摩天大楼、梧桐区的老洋房，构成了一幅独特的城市画卷。这里时尚与古典交融，中西文化碰撞。上海本帮菜精致考究，各国美食应有尽有。靠近东海，气候温和湿润。", tagline: "东方明珠，魔都上海" },
+                { name: "北京", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "凉爽干燥", coastal: false, bustle: 5, desc: "北京，中国的首都，拥有三千多年建城史和八百多年建都史。故宫、长城、天坛、颐和园，处处是历史的见证。北京文化底蕴深厚，京味儿十足。烤鸭、涮肉、炸酱面等美食独具特色。四季分明，秋高气爽，冬季虽冷但室内温暖。", tagline: "千年古都，大气磅礴" },
+                { name: "西安", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "凉爽干燥", coastal: false, bustle: 3, desc: "西安，十三朝古都，中华文明的重要发源地之一。兵马俑、大雁塔、古城墙，每一处都承载着厚重的历史。西安的美食以面食和西北风味著称，肉夹馍、羊肉泡馍、凉皮让人赞不绝口。四季分明，气候干燥凉爽，生活节奏适中。", tagline: "十三朝古都，碳水之都" },
+                { name: "南京", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "温暖舒适", coastal: false, bustle: 3, desc: "南京，六朝古都，十朝都会。中山陵的庄严、秦淮河的旖旎、明城墙的沧桑，诉说着这座城市的历史厚度。南京美食融合南北，盐水鸭、鸭血粉丝汤远近闻名。四季分明，气候温和，梧桐树荫下的城市气质温润而沉稳。", tagline: "六朝古都，梧桐之城" },
+                { name: "苏州", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "温暖舒适", coastal: false, bustle: 3, desc: "苏州，江南水乡的代表，以园林艺术闻名于世。拙政园、留园、网师园，每一座园林都是建筑与自然的完美结合。苏州的丝绸、昆曲、评弹，处处彰显着江南文化的精致。四季分明，气候宜人，古城与新城和谐共生。", tagline: "园林之城，东方威尼斯" },
+                { name: "重庆", humanities: "历史底蕴", food: 5, weather: "四季分明", climate: "湿热", coastal: false, bustle: 4, desc: "重庆，山城、雾都、火锅之城。这座8D魔幻城市依山而建，长江与嘉陵江在此交汇。重庆火锅麻辣鲜香，小面、酸辣粉等美食让人欲罢不能。气候湿热，夏天火辣，但夜景璀璨迷人，洪崖洞如同千与千寻中的场景。", tagline: "8D魔幻，火锅之都" },
+                { name: "武汉", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "湿热", coastal: false, bustle: 4, desc: "武汉，九省通衢，长江与汉江交汇之地。黄鹤楼屹立千年，东湖烟波浩渺。武汉的热干面、鸭脖、豆皮等美食闻名遐迩，“过早”文化独特而丰富。四季分明，夏季湿热，但城市活力十足，高校云集，充满青春气息。", tagline: "九省通衢，江城武汉" },
+                { name: "长沙", humanities: "历史底蕴", food: 5, weather: "四季分明", climate: "湿热", coastal: false, bustle: 4, desc: "长沙，一座充满烟火气和娱乐精神的城市。岳麓山的书香、橘子洲的浪漫、太平街的热闹，处处让人流连。长沙美食以辣著称，臭豆腐、小龙虾、茶颜悦色让人上瘾。这里夜生活丰富，被称为“不夜城”，充满年轻的活力。", tagline: "娱乐之都，美食之城" },
+                { name: "天津", humanities: "多元融合", food: 3, weather: "四季分明", climate: "凉爽干燥", coastal: true, bustle: 3, desc: "天津，一座中西合璧、古今交融的城市。五大道的小洋楼、意式风情区的浪漫、古文化街的民俗，构成了独特的城市风貌。天津的煎饼果子、狗不理包子、麻花等美食独具特色。靠海而居，气候凉爽干燥，生活节奏悠闲。", tagline: "渤海明珠，哏都天津" },
+                { name: "宁波", humanities: "历史底蕴", food: 4, weather: "四季分明", climate: "温暖舒适", coastal: true, bustle: 3, desc: "宁波，一座低调而富庶的海港城市。天一阁的书香、东钱湖的秀美、老外滩的风情，处处彰显着这座城市的底蕴。宁波的海鲜美食新鲜丰富，汤圆等小吃也远近闻名。靠海而居，气候温和，生活品质高。", tagline: "书藏古今，港通天下" },
+                { name: "福州", humanities: "历史底蕴", food: 3, weather: "温暖湿润", climate: "温暖舒适", coastal: true, bustle: 3, desc: "福州，有福之州，闽都古城。三坊七巷保存着完好的古建筑群，温泉资源丰富。福州气候温暖湿润，榕树遍地，被称为“榕城”。海鲜和闽菜美食独具特色，鱼丸、肉燕等小吃让人回味。生活节奏不紧不慢，十分宜居。", tagline: "有福之州，榕城福州" },
+                { name: "泉州", humanities: "历史底蕴", food: 4, weather: "温暖湿润", climate: "温暖舒适", coastal: true, bustle: 3, desc: "泉州，宋元时期的世界第一大港，海上丝绸之路的起点。这里宗教文化多元共存，开元寺、清净寺、天后宫等古迹众多。泉州美食以闽南风味为主，面线糊、土笋冻、烧肉粽让人赞不绝口。气候温暖湿润，靠海而居，文化底蕴深厚。", tagline: "海丝起点，世遗之城" },
+                { name: "桂林", humanities: "自然田园", food: 2, weather: "四季分明", climate: "温暖舒适", coastal: false, bustle: 2, desc: "桂林，山水甲天下的旅游名城。漓江的碧水、喀斯特地貌的奇峰、阳朔的田园风光，构成了一幅绝美的山水画卷。桂林气候温和，四季分明，生活节奏悠闲。虽然美食种类不算特别丰富，但桂林米粉等特色小吃也有独特风味。", tagline: "山水甲天下，漓江之滨" },
+                { name: "贵阳", humanities: "自然田园", food: 3, weather: "四季如春", climate: "凉爽干燥", coastal: false, bustle: 2, desc: "贵阳，中国避暑之都，夏季平均气温仅23℃。这里山清水秀，森林覆盖率高，空气质量极佳。贵阳美食以酸辣著称，酸汤鱼、肠旺面等特色鲜明。四季如春的气候让这里成为天然的大空调，生活节奏舒缓。", tagline: "避暑之都，爽爽贵阳" },
+                { name: "南宁", humanities: "自然田园", food: 3, weather: "温暖湿润", climate: "湿热", coastal: false, bustle: 3, desc: "南宁，绿城南宁，中国面向东盟的门户城市。这里气候温暖湿润，四季常绿，城市绿化率极高。南宁的老友粉、柠檬鸭等美食独具广西特色。虽不靠海但距离北海等海滨城市不远，生活节奏适中，宜居宜业。", tagline: "绿城南宁，东盟门户" },
+                { name: "丽江", humanities: "自然田园", food: 2, weather: "四季如春", climate: "凉爽干燥", coastal: false, bustle: 1, desc: "丽江，一座让时间慢下来的古城。玉龙雪山的壮美、丽江古城的古朴、束河古镇的宁静，处处是治愈系的风景。这里气候凉爽干燥，阳光充足，蓝天白云触手可及。丽江适合追求内心平静、热爱自然与民族文化的人。", tagline: "柔软时光，治愈丽江" },
+                { name: "哈尔滨", humanities: "历史底蕴", food: 3, weather: "四季分明", climate: "凉爽干燥", coastal: false, bustle: 3, desc: "哈尔滨，东方莫斯科，冰雪之城。中央大街的欧式建筑、圣索菲亚大教堂的庄严、冰雪大世界的奇幻，让这座城市充满异域风情。哈尔滨的东北菜份量十足，红肠、锅包肉等美食独具特色。四季分明，冬季寒冷但冰雪文化丰富。", tagline: "东方莫斯科，冰雪之城" },
+                { name: "沈阳", humanities: "历史底蕴", food: 3, weather: "四季分明", climate: "凉爽干燥", coastal: false, bustle: 3, desc: "沈阳，清朝的发祥地，东北地区的中心城市。故宫的红墙、张氏帅府的传奇、中街的热闹，让这座城市既有历史的厚重又有现代的活力。沈阳的烧烤、鸡架等美食独具东北特色。四季分明，气候凉爽干燥。", tagline: "一朝发祥地，两代帝王都" }
+            ];
+
+            // 出生城市候选列表（简化，仅用于datalist提示）
+            const allCities = [
+                "北京", "上海", "天津", "重庆", "广州", "深圳", "成都", "杭州", "武汉", "西安",
+                "南京", "苏州", "无锡", "宁波", "青岛", "大连", "厦门", "福州", "泉州", "长沙",
+                "郑州", "济南", "合肥", "南昌", "南宁", "桂林", "海口", "三亚", "贵阳", "昆明",
+                "大理", "丽江", "拉萨", "兰州", "西宁", "银川", "乌鲁木齐", "哈尔滨", "长春", "沈阳",
+                "石家庄", "太原", "呼和浩特", "包头", "唐山", "秦皇岛", "邯郸", "保定", "张家口", "承德",
+                "沧州", "廊坊", "衡水", "邢台", "大同", "阳泉", "长治", "晋城", "朔州", "晋中",
+                "运城", "忻州", "临汾", "吕梁", "鞍山", "抚顺", "本溪", "丹东", "锦州", "营口",
+                "阜新", "辽阳", "盘锦", "铁岭", "朝阳", "葫芦岛", "吉林", "四平", "辽源", "通化",
+                "白山", "松原", "白城", "延边", "齐齐哈尔", "鸡西", "鹤岗", "双鸭山", "大庆", "伊春",
+                "佳木斯", "七台河", "牡丹江", "黑河", "绥化", "徐州", "常州", "南通", "连云港", "淮安",
+                "盐城", "扬州", "镇江", "泰州", "宿迁", "温州", "嘉兴", "湖州", "绍兴", "金华",
+                "衢州", "舟山", "台州", "丽水", "芜湖", "蚌埠", "淮南", "马鞍山", "淮北", "铜陵",
+                "安庆", "黄山", "滁州", "阜阳", "宿州", "六安", "亳州", "池州", "宣城", "莆田",
+                "三明", "漳州", "南平", "龙岩", "宁德", "景德镇", "萍乡", "九江", "新余", "鹰潭",
+                "赣州", "吉安", "宜春", "抚州", "上饶", "淄博", "枣庄", "东营", "烟台", "潍坊",
+                "济宁", "泰安", "威海", "日照", "临沂", "德州", "聊城", "滨州", "菏泽", "洛阳",
+                "开封", "平顶山", "安阳", "鹤壁", "新乡", "焦作", "濮阳", "许昌", "漯河", "三门峡",
+                "南阳", "商丘", "信阳", "周口", "驻马店", "黄石", "十堰", "宜昌", "襄阳", "鄂州",
+                "荆门", "孝感", "荆州", "黄冈", "咸宁", "随州", "恩施", "株洲", "湘潭", "衡阳",
+                "邵阳", "岳阳", "常德", "张家界", "益阳", "郴州", "永州", "怀化", "娄底", "湘西",
+                "韶关", "珠海", "汕头", "佛山", "江门", "湛江", "茂名", "肇庆", "惠州", "梅州",
+                "汕尾", "河源", "阳江", "清远", "东莞", "中山", "潮州", "揭阳", "云浮", "柳州",
+                "梧州", "北海", "防城港", "钦州", "贵港", "玉林", "百色", "贺州", "河池", "来宾",
+                "崇左", "自贡", "攀枝花", "泸州", "德阳", "绵阳", "广元", "遂宁", "内江", "乐山",
+                "南充", "眉山", "宜宾", "广安", "达州", "雅安", "巴中", "资阳", "阿坝", "甘孜",
+                "凉山", "六盘水", "遵义", "安顺", "毕节", "铜仁", "黔西南", "黔东南", "黔南", "曲靖",
+                "玉溪", "保山", "昭通", "普洱", "临沧", "楚雄", "红河", "文山", "西双版纳", "德宏",
+                "怒江", "迪庆", "日喀则", "昌都", "林芝", "山南", "那曲", "阿里", "铜川", "宝鸡",
+                "咸阳", "渭南", "延安", "汉中", "榆林", "安康", "商洛", "嘉峪关", "金昌", "白银",
+                "天水", "武威", "张掖", "平凉", "酒泉", "庆阳", "定西", "陇南", "临夏", "甘南",
+                "海东", "海北", "黄南", "海南州", "果洛", "玉树", "海西", "石嘴山", "吴忠", "固原",
+                "中卫", "克拉玛依", "吐鲁番", "哈密", "昌吉", "博尔塔拉", "巴音郭楞", "阿克苏", "克孜勒苏", "喀什",
+                "和田", "伊犁", "塔城", "阿勒泰", "石河子", "阿拉尔", "图木舒克", "五家渠", "北屯", "铁门关"
+            ];
+
+            // 状态
+            const state = {
+                currentStep: 0,
+                birthCity: '',
+                birthDate: '',
+                answers: {
+                    humanities: null,
+                    food: null,
+                    weather: null,
+                    climate: null,
+                    coastal: null,
+                    bustle: null
+                },
+                totalSteps: 8
+            };
+
+            // DOM
+            const steps = document.querySelectorAll('.step-card');
+            const progressBar = document.getElementById('progressBar');
+            const birthCityInput = document.getElementById('birthCity');
+            const cityList = document.getElementById('cityList');
+            const birthDateInput = document.getElementById('birthDate');
+            const nextFromCity = document.getElementById('nextFromCity');
+            const nextFromDate = document.getElementById('nextFromDate');
+            const backToStep0 = document.getElementById('backToStep0');
+            const backToStep1 = document.getElementById('backToStep1');
+            const backToStep2 = document.getElementById('backToStep2');
+            const backToStep3 = document.getElementById('backToStep3');
+            const backToStep4 = document.getElementById('backToStep4');
+            const backToStep5 = document.getElementById('backToStep5');
+            const backToStep6 = document.getElementById('backToStep6');
+            const showResultBtn = document.getElementById('showResult');
+            const resultCard = document.getElementById('resultCard');
+            const restartBtn = document.getElementById('restartBtn');
+            const allOptionBtns = document.querySelectorAll('.option-btn');
+            const nextFromOptionBtns = document.querySelectorAll('.next-from-option');
+
+            // 填充datalist
+            allCities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                cityList.appendChild(option);
+            });
+
+            function updateProgress() {
+                const pct = ((state.currentStep + 1) / state.totalSteps) * 100;
+                progressBar.style.width = pct + '%';
+            }
+
+            function goToStep(stepIndex) {
+                steps.forEach((s, i) => {
+                    s.classList.toggle('active', i === stepIndex);
+                });
+                state.currentStep = stepIndex;
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // 修复关键：出生城市验证放宽，只要非空且长度>=2
+            function validateCity() {
+                const val = birthCityInput.value.trim();
+                if (val.length >= 2) {
+                    state.birthCity = val;
+                    nextFromCity.disabled = false;
+                } else {
+                    state.birthCity = '';
+                    nextFromCity.disabled = true;
+                }
+            }
+            birthCityInput.addEventListener('input', validateCity);
+            birthCityInput.addEventListener('change', validateCity);
+
+            function validateDate() {
+                if (birthDateInput.value) {
+                    state.birthDate = birthDateInput.value;
+                    nextFromDate.disabled = false;
+                } else {
+                    state.birthDate = '';
+                    nextFromDate.disabled = true;
+                }
+            }
+            birthDateInput.addEventListener('change', validateDate);
+            birthDateInput.addEventListener('input', validateDate);
+
+            // 选项选择
+            allOptionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const group = this.closest('.options-group');
+                    const qKey = group.dataset.q;
+                    group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    state.answers[qKey] = this.dataset.value;
+                    const nextBtn = group.closest('.step-card').querySelector('.next-from-option');
+                    if (nextBtn) nextBtn.disabled = false;
+                    if (qKey === 'bustle') showResultBtn.disabled = false;
+                });
+            });
+
+            // 按钮事件
+            nextFromCity.addEventListener('click', () => goToStep(1));
+            backToStep0.addEventListener('click', () => goToStep(0));
+            nextFromDate.addEventListener('click', () => goToStep(2));
+            backToStep1.addEventListener('click', () => goToStep(1));
+
+            backToStep2.addEventListener('click', () => goToStep(2));
+            backToStep3.addEventListener('click', () => goToStep(3));
+            backToStep4.addEventListener('click', () => goToStep(4));
+            backToStep5.addEventListener('click', () => goToStep(5));
+            backToStep6.addEventListener('click', () => goToStep(6));
+
+            nextFromOptionBtns.forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    if (idx === 5) {
+                        calculateAndShowResult();
+                    } else {
+                        goToStep(idx + 3);
+                    }
+                });
+            });
+
+            showResultBtn.addEventListener('click', calculateAndShowResult);
+            restartBtn.addEventListener('click', resetAll);
+
+            // 推荐算法
+            function calculateAndShowResult() {
+                const requiredKeys = ['humanities', 'food', 'weather', 'climate', 'coastal', 'bustle'];
+                for (let k of requiredKeys) {
+                    if (!state.answers[k]) {
+                        alert('请完成所有选择题后再查看结果～');
+                        return;
+                    }
+                }
+                if (!state.birthCity || !state.birthDate) {
+                    alert('请先完成出生地和出生日期的选择～');
+                    return;
+                }
+
+                const scores = cityDB.map(city => {
+                    let score = 0;
+                    if (city.humanities === state.answers.humanities) score += 3;
+                    else if (state.answers.humanities === '多元融合' && ['历史底蕴', '现代都市', '自然田园'].includes(city.humanities)) score += 1;
+
+                    const foodPref = parseInt(state.answers.food);
+                    if (foodPref === 5) {
+                        if (city.food >= 5) score += 3;
+                        else if (city.food >= 3) score += 1;
+                    } else if (foodPref === 3) {
+                        if (city.food >= 3 && city.food <= 4) score += 3;
+                        else if (city.food >= 2) score += 1;
+                    } else {
+                        if (city.food <= 2) score += 3;
+                        else if (city.food <= 3) score += 1;
+                    }
+
+                    if (city.weather === state.answers.weather) score += 3;
+                    else if (state.answers.weather === '四季如春' && city.weather === '四季分明') score += 1;
+
+                    if (city.climate === state.answers.climate) score += 3;
+                    else if (state.answers.climate === '温暖舒适' && city.climate === '四季如春') score += 1;
+                    else if (state.answers.climate === '凉爽干燥' && city.climate === '四季如春') score += 1;
+
+                    if (state.answers.coastal === 'yes') {
+                        if (city.coastal) score += 3;
+                    } else if (state.answers.coastal === 'no') {
+                        if (!city.coastal) score += 3;
+                    } else score += 1;
+
+                    const bustlePref = parseInt(state.answers.bustle);
+                    if (bustlePref === 5) {
+                        if (city.bustle >= 4) score += 3;
+                        else if (city.bustle >= 3) score += 1;
+                    } else if (bustlePref === 3) {
+                        if (city.bustle >= 2 && city.bustle <= 3) score += 3;
+                        else if (city.bustle >= 1 && city.bustle <= 4) score += 1;
+                    } else {
+                        if (city.bustle <= 2) score += 3;
+                        else if (city.bustle <= 3) score += 1;
+                    }
+
+                    const month = parseInt(state.birthDate.split('-')[1]);
+                    const isWinterBorn = (month === 12 || month === 1 || month === 2);
+                    const isSummerBorn = (month >= 6 && month <= 8);
+                    const isSpringBorn = (month >= 3 && month <= 5);
+                    if (isWinterBorn && (city.climate === '温暖舒适' || city.climate === '湿热')) score += 2;
+                    if (isSummerBorn && city.climate === '凉爽干燥') score += 1;
+                    if (isSpringBorn && city.weather === '四季如春') score += 1;
+
+                    // 出生城市微调（仅用作加分，不强制匹配）
+                    const southCities = ['广州', '深圳', '南宁', '海口', '三亚', '昆明', '贵阳', '福州', '厦门', '泉州', '桂林', '柳州', '北海', '成都', '重庆', '长沙', '武汉', '南昌', '杭州', '南京', '上海', '珠海', '东莞', '中山', '佛山', '惠州', '江门', '湛江', '茂名', '肇庆', '汕头', '汕尾', '阳江', '清远', '潮州', '揭阳', '云浮', '河源', '梅州', '韶关', '百色', '贺州', '河池', '来宾', '崇左', '防城港', '钦州', '贵港', '玉林', '六盘水', '遵义', '安顺', '毕节', '铜仁', '黔西南', '黔东南', '黔南', '曲靖', '玉溪', '保山', '昭通', '普洱', '临沧', '楚雄', '红河', '文山', '西双版纳', '德宏', '怒江', '迪庆', '宜宾', '泸州', '自贡', '攀枝花', '德阳', '绵阳', '广元', '遂宁', '内江', '乐山', '南充', '眉山', '广安', '达州', '雅安', '巴中', '资阳', '阿坝', '甘孜', '凉山'];
+                    const isFromSouth = southCities.includes(state.birthCity);
+                    if (isFromSouth && (city.climate === '温暖舒适' || city.climate === '湿热')) score += 1;
+                    if (!isFromSouth && (city.climate === '温暖舒适' || city.climate === '湿热')) score += 1;
+
+                    return { city, score };
+                });
+
+                scores.sort((a, b) => b.score - a.score || Math.random() - 0.5);
+                const top1 = scores[0];
+                const top2 = scores[1];
+                const top3 = scores[2];
+                displayResult(top1, top2, top3);
+            }
+
+            function displayResult(top1, top2, top3) {
+                const city = top1.city;
+                const user = state.answers;
+                steps.forEach(s => s.classList.remove('active'));
+                resultCard.classList.add('active');
+                progressBar.style.width = '100%';
+
+                document.getElementById('resultCityName').textContent = city.name;
+                document.getElementById('resultCitySub').textContent = city.tagline;
+
+                const tagsContainer = document.getElementById('resultTags');
+                tagsContainer.innerHTML = '';
+                const tagData = [
+                    { label: '人文：' + city.humanities, match: city.humanities === user.humanities },
+                    { label: '美食指数：' + '⭐'.repeat(city.food), match: Math.abs(city.food - parseInt(user.food)) <= 2 },
+                    { label: '天气：' + city.weather, match: city.weather === user.weather },
+                    { label: '气候：' + city.climate, match: city.climate === user.climate },
+                    { label: city.coastal ? '靠海 🌊' : '不靠海 🏔️', match: (user.coastal === 'yes' && city.coastal) || (user.coastal === 'no' && !city.coastal) },
+                    { label: '热闹度：' + '🔥'.repeat(Math.min(city.bustle, 5)), match: Math.abs(city.bustle - parseInt(user.bustle)) <= 2 }
+                ];
+                tagData.forEach(t => {
+                    const span = document.createElement('span');
+                    span.className = 'result-tag' + (t.match ? ' match' : '');
+                    span.textContent = t.label;
+                    tagsContainer.appendChild(span);
+                });
+
+                const desc = generateDescription(city, user, state.birthCity, state.birthDate);
+                document.getElementById('resultDesc').textContent = desc;
+                document.getElementById('resultSecond').textContent = top2.city.name;
+                document.getElementById('resultThird').textContent = top3.city.name;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function generateDescription(city, user, birthCity, birthDate) {
+                const month = parseInt(birthDate.split('-')[1]);
+                const seasonMap = { 3: '春天', 4: '春天', 5: '春天', 6: '夏天', 7: '夏天', 8: '夏天', 9: '秋天', 10: '秋天', 11: '秋天', 12: '冬天', 1: '冬天', 2: '冬天' };
+                const season = seasonMap[month] || '';
+                let desc = city.desc + '\n\n';
+
+                if (city.humanities === user.humanities) {
+                    desc += '你选择了' + user.humanities + '的人文氛围，而' + city.name + '正是这方面的典范。';
+                } else if (user.humanities === '多元融合') {
+                    desc += '你偏爱多元文化的交融，' + city.name + '的' + city.humanities + '底蕴中同样蕴含着开放包容的气质，能给你带来丰富的文化体验。';
+                } else {
+                    desc += '你选择了' + user.humanities + '，虽然' + city.name + '以' + city.humanities + '著称，但其多元魅力同样能触动你的心。';
+                }
+
+                const foodPref = parseInt(user.food);
+                if (foodPref === 5 && city.food >= 4) {
+                    desc += '你对美食超级热爱，而' + city.name + '的美食天堂绝对能满足你的味蕾，从街头小吃到精致餐厅，每一天都有新的惊喜。';
+                } else if (foodPref === 5 && city.food < 4) {
+                    desc += '虽然' + city.name + '的美食种类不如顶级美食之都丰富，但依然有不少特色美味值得探索。';
+                } else if (foodPref === 3 && city.food >= 3) {
+                    desc += '你对美食的态度是好吃就行，' + city.name + '的美食水平恰到好处，不会让你失望。';
+                } else if (foodPref === 1) {
+                    desc += '你对美食不太在意，' + city.name + '的基础饮食完全能满足日常需求，让你把精力放在更重要的事情上。';
+                }
+
+                if (city.weather === user.weather) {
+                    desc += '你理想中的天气是' + user.weather + '，' + city.name + '完美符合你的期待。';
+                } else {
+                    desc += '你偏好' + user.weather + '的天气，而' + city.name + '的' + city.weather + '天气也有其独特的魅力，值得你去感受。';
+                }
+
+                if (city.climate === user.climate) {
+                    desc += '你喜欢' + user.climate + '的气候，' + city.name + '恰好能给你最舒适的体感。';
+                } else {
+                    desc += '你倾向' + user.climate + '的气候，' + city.name + '的' + city.climate + '气候虽然不同，但也有许多人因此爱上了这里。';
+                }
+
+                if (user.coastal === 'yes' && city.coastal) {
+                    desc += '你非常希望住在海边，' + city.name + '的海岸线会让你每天都心旷神怡。';
+                } else if (user.coastal === 'no' && !city.coastal) {
+                    desc += '你不太喜欢海边，' + city.name + '的内陆位置正合你意，远离潮湿海风，生活更舒适。';
+                } else if (user.coastal === 'yes' && !city.coastal) {
+                    desc += '虽然' + city.name + '不靠海，但它的其他魅力足以弥补这一点。';
+                } else if (user.coastal === 'no' && city.coastal) {
+                    desc += '虽然' + city.name + '靠海，但它的城市气质远不止于海滨风光。';
+                }
+
+                const bustlePref = parseInt(user.bustle);
+                if (bustlePref === 5 && city.bustle >= 4) {
+                    desc += '你喜欢热闹繁华，' + city.name + '的活力和烟火气会让你每天充满能量。';
+                } else if (bustlePref === 1 && city.bustle <= 2) {
+                    desc += '你喜欢安静的环境，' + city.name + '的宁静与从容正是你心灵的栖息地。';
+                } else if (bustlePref === 3 && city.bustle >= 2 && city.bustle <= 3) {
+                    desc += '你喜欢动静皆宜的生活，' + city.name + '恰到好处的节奏会让你感到十分舒适。';
+                }
+
+                desc += '作为' + season + '出生的你，' + city.name + '的气候与你的生命节律有着天然的契合。';
+                desc += '从' + birthCity + '来到' + city.name + '，你会发现这里的一切都像是为你量身定制——无论是人文气息、生活节奏，还是气候环境，都与你内心深处对理想生活的想象高度重合。';
+                desc += '\n\n综合来看，' + city.name + '与你的契合度极高。你选择的每一个偏好，在这座城市中都能找到完美的回应。它不仅仅是一个居住的地方，更是一个能让你真正做自己、活出理想生活状态的灵魂归宿。';
+                return desc;
+            }
+
+            function resetAll() {
+                state.currentStep = 0;
+                state.birthCity = '';
+                state.birthDate = '';
+                state.answers = { humanities: null, food: null, weather: null, climate: null, coastal: null, bustle: null };
+                birthCityInput.value = '';
+                birthDateInput.value = '';
+                nextFromCity.disabled = true;
+                nextFromDate.disabled = true;
+                showResultBtn.disabled = true;
+                allOptionBtns.forEach(b => b.classList.remove('selected'));
+                nextFromOptionBtns.forEach(b => b.disabled = true);
+                resultCard.classList.remove('active');
+                goToStep(0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            updateProgress();
+            nextFromOptionBtns.forEach(b => b.disabled = true);
+            showResultBtn.disabled = true;
+
+            // 模糊匹配优化（非强制）
+            birthCityInput.addEventListener('blur', function() {
+                const val = this.value.trim();
+                if (val.length >= 2 && !allCities.includes(val)) {
+                    const matched = allCities.find(c => c.includes(val) || val.includes(c));
+                    if (matched) {
+                        this.value = matched;
+                        state.birthCity = matched;
+                        nextFromCity.disabled = false;
+                    }
+                }
+            });
+
+            console.log('🏙️ 城市契合度测试已加载完成（修复版）');
+        })();
+    </script>
+</body>
+</html>
