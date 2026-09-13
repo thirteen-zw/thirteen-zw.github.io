@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0d0b09" />
+<title>历史上早有人，靠类似你的性格走完一生 ✨</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#0d0b09;
+    --card:#191612;
+    --card2:#211d18;
+    --gold:#c8a96a;
+    --gold-dim:#8a7448;
+    --text:#e9e4da;
+    --text-dim:#948b80;
+    --line:rgba(200,169,106,.16);
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,169,106,.13), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, rgba(200,169,106,.06), transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;
+    min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{
+    font-size:11px;letter-spacing:5px;color:var(--gold-dim);
+    margin-bottom:30px;font-weight:500;
+  }
+  .cover-title{
+    font-family:"Songti SC","STSong","Noto Serif SC",serif;
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    background:linear-gradient(175deg,#fff8ea 0%,#c8a96a 120%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .spark{-webkit-text-fill-color:initial;font-size:22px;}
+  .cover-sub{
+    margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);
+  }
+  .cover-meta{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    margin-top:30px;font-size:12px;color:var(--gold-dim);
+  }
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--gold-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:linear-gradient(120deg,#d8bb7d,#b8944f 60%,#d8bb7d);
+    color:#231c0d;font-size:16px;font-weight:700;letter-spacing:3px;
+    font-family:inherit;
+    box-shadow:0 10px 30px -10px rgba(200,169,106,.65);
+    transition:transform .18s ease,box-shadow .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);box-shadow:0 6px 18px -10px rgba(200,169,106,.65);}
+  .cover-note{
+    margin-top:20px;font-size:11px;line-height:1.9;color:#5f584f;
+  }
+
+  /* ---------- 答题 ---------- */
+  .quiz-head{margin-bottom:8px;}
+  .progress{
+    height:3px;border-radius:3px;background:rgba(200,169,106,.12);overflow:hidden;
+  }
+  .progress-bar{
+    height:100%;width:0;border-radius:3px;
+    background:linear-gradient(90deg,#8a7448,#d8bb7d);
+    transition:width .4s cubic-bezier(.22,.9,.3,1);
+  }
+  .q-index{
+    margin-top:12px;font-size:12px;color:var(--gold-dim);letter-spacing:2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .q-text{
+    font-family:"Songti SC","STSong",serif;
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;
+    width:100%;text-align:left;font-family:inherit;
+    background:var(--card);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:16px 16px;border-radius:15px;
+    font-size:15px;line-height:1.65;
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{
+    border-color:var(--gold);
+    background:rgba(200,169,106,.13);
+    box-shadow:0 0 0 1px rgba(200,169,106,.35) inset;
+  }
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;
+    border:1px solid var(--gold-dim);color:var(--gold);
+    font-size:11px;display:flex;align-items:center;justify-content:center;
+    margin-top:3px;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--gold);color:#231c0d;border-color:var(--gold);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--gold-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:"Songti SC","STSong",serif;
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;
+    background:linear-gradient(180deg,#fff6e4,#c8a96a 90%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 6px 24px rgba(200,169,106,.35));
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--gold-dim);margin-top:6px;}
+  .res-name{
+    font-family:"Songti SC","STSong",serif;
+    font-size:31px;font-weight:600;letter-spacing:5px;
+    margin:22px 0 8px;color:#fdf6e8;
+  }
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{
+    font-size:12px;padding:4px 13px;border-radius:999px;
+    border:1px solid var(--line);color:var(--gold);
+    background:rgba(200,169,106,.07);
+  }
+  .card{
+    background:var(--card);
+    border:1px solid rgba(200,169,106,.11);
+    border-radius:16px;
+    padding:20px 18px;
+    margin-top:14px;
+  }
+  .card-label{
+    font-size:10.5px;letter-spacing:3px;color:var(--gold-dim);
+    margin-bottom:12px;font-weight:600;
+  }
+  .lead-wrap{display:flex;align-items:baseline;gap:10px;}
+  .lead-dim{
+    font-family:"Songti SC","STSong",serif;
+    font-size:26px;font-weight:600;color:var(--gold);letter-spacing:3px;
+  }
+  .lead-score{font-size:13px;color:var(--text-dim);}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:"Songti SC","STSong",serif;
+    font-size:16.5px;line-height:1.85;color:#f2ece0;
+    border-left:2px solid var(--gold-dim);
+    padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{
+    flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;
+  }
+  .bar-name.lead{color:var(--gold);font-weight:700;}
+  .bar-track{
+    flex:1;height:7px;border-radius:7px;
+    background:rgba(255,255,255,.055);overflow:hidden;
+  }
+  .bar-fill{
+    display:block;height:100%;width:0;border-radius:7px;
+    background:linear-gradient(90deg,#6d5c38,#a98d51);
+    transition:width .9s cubic-bezier(.22,.9,.3,1);
+  }
+  .bar-fill.lead{background:linear-gradient(90deg,#b8944f,#f0d79c);}
+  .bar-val{
+    flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  .bar-val.lead{color:var(--gold);font-weight:700;}
+  .explain{
+    font-size:14.5px;line-height:2.05;color:#cfc8bc;letter-spacing:.3px;
+    text-align:justify;
+  }
+  .explain b{color:var(--gold);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:rgba(255,255,255,.026);
+    border:1px dashed rgba(200,169,106,.2);
+    font-size:11.5px;line-height:1.9;color:#6f675d;text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;
+    padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);
+    color:var(--gold);font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:rgba(200,169,106,.08);transform:scale(.98);}
+  .foot-mark{
+    text-align:center;font-size:10.5px;color:#4a443d;letter-spacing:2px;
+    margin-top:26px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ 封面 ============ -->
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <p class="cover-eyebrow">历 史 人 格 测 试</p>
+      <h1 class="cover-title">历史上早有人，<br>靠着类似你的性格<br>走完一生<span class="spark">✨</span></h1>
+      <p class="cover-sub">
+        10 道关于人性的两难选择<br>
+        测出你的八维性格倾向<br>
+        以及那位与你同频的古人
+      </p>
+      <div class="cover-meta">
+        <span>共 10 题</span><i></i><span>约 2 分钟</span><i></i><span>清朝之前</span>
+      </div>
+      <button class="btn-primary" id="startBtn">开 始 测 试</button>
+      <p class="cover-note">相近的是部分选择方式<br>不代表经历、能力或价值相同</p>
+    </div>
+  </section>
+
+  <!-- ============ 答题 ============ -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <!-- ============ 结果 ============ -->
+  <section id="screen-result" class="screen"></section>
+
+</div>
+
+<script>
+/* =========================================================
+   八维定义
+   ========================================================= */
+const DIMS = [
+  { key:'kai',  name:'开创' },
+  { key:'jue',  name:'决断' },
+  { key:'gong', name:'共情' },
+  { key:'dan',  name:'担当' },
+  { key:'ge',   name:'格局' },
+  { key:'zi',   name:'资源' },
+  { key:'xu',   name:'秩序' },
+  { key:'biao', name:'表达' }
+];
+
+/* =========================================================
+   题库：10 道人性两难
+   ========================================================= */
+const QUESTIONS = [
+  {
+    q: '你无意间知道了一个秘密：说出去会毁掉你最好的朋友，但不说，一个无辜的人就要一直受伤害。',
+    opts: [
+      { t:'告诉那个无辜的人。哪怕失去这段友情，也不能让他白白受伤。', s:{ xu:3, dan:3, jue:1 } },
+      { t:'先私下劝朋友自己去坦白，给 ta 一次回头的机会。', s:{ gong:3, biao:2 } },
+      { t:'暂时不说，但暗中替朋友把伤害降到最低。', s:{ zi:3, kai:1 } }
+    ]
+  },
+  {
+    q: '一个能彻底改变你命运的机会出现了，但需要你踩着一个曾经帮过你的人往上走。',
+    opts: [
+      { t:'抓住它。机会只有一次，之后我加倍补偿他。', s:{ kai:3, jue:2 } },
+      { t:'放弃。宁可慢一点，也要走一条不欠任何人的路。', s:{ dan:3, xu:2 } },
+      { t:'直接去问他。如果他愿意让给我，我就上。', s:{ biao:2, gong:2, zi:1 } }
+    ]
+  },
+  {
+    q: '你所在的地方，所有人都相信着一个善意的谎言。说出真相，会让很多人的信念一夜崩塌。',
+    opts: [
+      { t:'说出来。人有权知道真相，哪怕会痛。', s:{ jue:2, xu:2, dan:2 } },
+      { t:'不说。有些安稳，比真相更值得守护。', s:{ gong:3, xu:1 } },
+      { t:'只告诉那个最该知道的人，其余交给时间。', s:{ zi:2, biao:2, gong:1 } }
+    ]
+  },
+  {
+    q: '你的判断和所有人都不一样，而你自己心里清楚，你大概率是对的。',
+    opts: [
+      { t:'坚持到底。哪怕被孤立，也不改口。', s:{ kai:3, jue:2 } },
+      { t:'先跟着大家走，再慢慢找机会影响他们。', s:{ zi:3, gong:1 } },
+      { t:'把自己的理由讲透，争取他们站过来。', s:{ biao:3, dan:1 } }
+    ]
+  },
+  {
+    q: '你有能力立刻救下一百个人，但若把资源留到三年后，能救一万人。而那一百个人，正在求救。',
+    opts: [
+      { t:'先救眼前的人。以后的事，以后再说。', s:{ gong:3, dan:2 } },
+      { t:'忍住。为了三年后的一万人，这一百人我只能放弃。', s:{ ge:3, kai:2 } },
+      { t:'想尽办法两边都救，哪怕风险全压在我身上。', s:{ zi:2, dan:2, jue:1 } }
+    ]
+  },
+  {
+    q: '你终于坐上了那个能改规则的位置，但改规则意味着得罪一大批人，包括当初支持你的人。',
+    opts: [
+      { t:'立刻改。趁权力还在手上，一刻都不拖。', s:{ jue:3, kai:2 } },
+      { t:'一步一步来。先把局面稳住，再动刀。', s:{ zi:3, xu:2 } },
+      { t:'只改最关键的那一条，其余维持原样。', s:{ xu:2, ge:2 } }
+    ]
+  },
+  {
+    q: '你做了一件好事，却被所有人误解成另有所图，连亲近的人也开始怀疑你。',
+    opts: [
+      { t:'不解释。时间会替我说完所有的话。', s:{ ge:3, xu:2 } },
+      { t:'立刻澄清。名声坏了，以后什么都做不成。', s:{ biao:3, jue:1 } },
+      { t:'继续做下去。等结果出来，话自然就没了。', s:{ dan:3, kai:1 } }
+    ]
+  },
+  {
+    q: '你深爱的人选择了别人，而那个人处处不如你。',
+    opts: [
+      { t:'成全。退到远处，看 ta 过得好就够了。', s:{ gong:3, ge:2 } },
+      { t:'争取一次。至少让 ta 知道我的心意。', s:{ biao:3, kai:1 } },
+      { t:'转身离开，把所有力气放到别的事情上。', s:{ kai:3, jue:2 } }
+    ]
+  },
+  {
+    q: '有人逼你在一份你不认同的文件上签字。不签，你会失去自由；签了，会有陌生人因此受害。',
+    opts: [
+      { t:'不签。这条线，我不能过。', s:{ dan:3, xu:2 } },
+      { t:'先签，保住自己，再想办法补救。', s:{ zi:3, kai:1 } },
+      { t:'拖着，逼自己找出第三条路。', s:{ kai:2, zi:1, gong:1 } }
+    ]
+  },
+  {
+    q: '你有机会去很远的地方，做成一件更大的事，但这里有你放不下的人。',
+    opts: [
+      { t:'走。只有成就了自己，才能更好地护住他们。', s:{ ge:3, kai:2 } },
+      { t:'留下。人比事重要，错过了就是错过了。', s:{ gong:3, dan:1 } },
+      { t:'带着他们一起走。', s:{ zi:2, kai:1, biao:1 } }
+    ]
+  }
+];
+
+/* =========================================================
+   历史人物库（清朝之前）
+   ========================================================= */
+const FIGURES = [
+  {
+    name:'管仲', era:'春秋', role:'政治家与改革家 · 经营者',
+    tags:['务实','资源','长线'],
+    v:{ kai:95, jue:70, gong:55, dan:70, ge:80, zi:92, xu:78, biao:55 },
+    voice:'善用资源，才能让秩序真正长久。',
+    match:'他辅佐齐桓公，不靠道德说教，而是把盐铁、关税、军制一件件改成能长久运转的机器。他不追求一时的漂亮胜仗，只在乎十年之后齐国还在不在牌桌上。你把人情、时间、手里的牌都当成可以盘活的资源，先算清楚再动手——这种冷静，和他一脉相承。'
+  },
+  {
+    name:'秦始皇', era:'秦', role:'一统型帝王 · 定局者',
+    tags:['格局','决断','秩序'],
+    v:{ kai:88, jue:98, gong:22, dan:72, ge:95, zi:70, xu:92, biao:50 },
+    voice:'天下大势，要从分散走向一体。',
+    match:'他把六国的城墙拆了，把车轨、文字、度量衡全部统一。这件事在当时招来无数骂名，但他认定「分散」本身就是最大的问题。你的决断不是一时上头，而是愿意为了一个更长的秩序，先扛下当下一刻的所有反对。哪怕身边没人鼓掌，你也会把这一步走完。'
+  },
+  {
+    name:'武则天', era:'唐', role:'开创型女帝 · 定局者',
+    tags:['格局','决断','秩序'],
+    v:{ kai:90, jue:95, gong:38, dan:68, ge:90, zi:80, xu:85, biao:68 },
+    voice:'位置从不定义我，我来定义位置。',
+    match:'她从才人一路走到皇帝，路上一直被人质疑「位置不对」。她从不解释自己配不配，只是把该做的事一件件做成。你的选择里也有这种「我来定义位置」的意味：不等别人点头，先把事情推到不可回头的那一步。等你站定了，质疑自然就换了一种说法。'
+  },
+  {
+    name:'范仲淹', era:'北宋', role:'担当型政治家 · 守护者',
+    tags:['表达','担当','共情'],
+    v:{ kai:28, jue:32, gong:92, dan:90, ge:85, zi:48, xu:78, biao:75 },
+    voice:'先天下之忧而忧。',
+    match:'他写下「先天下之忧而忧」，不是姿态，而是把自己放在所有人前面挡风。一生被贬三次，每到一地就修堤、办学、救灾。你的共情和担当，同样是先照顾亲近的人、再去寻求援助，而不是站在高处指点别人该怎么做。你更愿意自己先淋一点雨。'
+  },
+  {
+    name:'孔子', era:'春秋', role:'教育家与思想家 · 立道者',
+    tags:['表达','秩序','担当'],
+    v:{ kai:72, jue:55, gong:82, dan:88, ge:80, zi:40, xu:90, biao:96 },
+    voice:'有教无类，人能自己站起来。',
+    match:'他一辈子没做成什么大官，却把「人该怎么相处」这件事讲成了两千年的标准。周游列国，处处碰壁，仍然相信教育能改变人。你重视表达与秩序，愿意把道理讲清楚，哪怕听的人当下并不理解。你相信只要话说到位，总有人会慢慢明白。'
+  },
+  {
+    name:'老子', era:'春秋', role:'思想家 · 观道者',
+    tags:['格局','共情','表达'],
+    v:{ kai:58, jue:38, gong:80, dan:38, ge:96, zi:50, xu:62, biao:88 },
+    voice:'上善若水，夫唯不争，故天下莫能与之争。',
+    match:'他看透了「越用力越失控」，于是选择退后一步。别人争的是位置，他争的是「不争」。你的格局与共情让你常常能看见事情的另一面，知道有些仗不必现在打赢。你更在意的是整盘棋的走向，而不是眼前这一子的输赢。'
+  },
+  {
+    name:'商鞅', era:'战国', role:'变法者 · 立法者',
+    tags:['秩序','决断','开创'],
+    v:{ kai:85, jue:95, gong:18, dan:72, ge:85, zi:58, xu:98, biao:52 },
+    voice:'法者，所以爱民也；礼者，所以便事也。',
+    match:'他把秦国的规矩改成谁也不能例外，连太子犯法也要受罚。他知道这会得罪所有人，包括未来的自己。你身上的秩序与决断，让你愿意相信：真正的公平，是先立好那条谁都不能破的线。你可以不被人喜欢，但不能让规矩变成一句空话。'
+  },
+  {
+    name:'张良', era:'西汉', role:'谋士 · 运筹者',
+    tags:['资源','格局','开创'],
+    v:{ kai:72, jue:66, gong:62, dan:65, ge:90, zi:96, xu:72, biao:65 },
+    voice:'运筹策帷帐中，决胜千里外。',
+    match:'他不出面，只出策。别人看到的是刘邦赢了，他看到的是哪一步该退、哪一步该进。你擅长把资源放到最合适的位置上，而不是自己冲到最前面去抢那个位置。你明白真正的高手，是让事情自己朝着想要的方向长出来。'
+  },
+  {
+    name:'诸葛亮', era:'三国', role:'丞相 · 担当者',
+    tags:['担当','秩序','资源'],
+    v:{ kai:76, jue:80, gong:72, dan:96, ge:86, zi:86, xu:90, biao:78 },
+    voice:'鞠躬尽瘁，死而后已。',
+    match:'他把一个快要散掉的摊子扛了二十多年，事无巨细，亲自过问。他未必不知道自己赢不了，但还是把每一步都走完。你的担当与秩序，让你在没人愿意负责的时候，会下意识地说出「我来」。哪怕前路难走，你也不肯把手里的事交出去。'
+  },
+  {
+    name:'曹操', era:'东汉末', role:'枭雄 · 破局者',
+    tags:['决断','开创','格局'],
+    v:{ kai:90, jue:96, gong:42, dan:72, ge:92, zi:88, xu:74, biao:80 },
+    voice:'设使国家无有孤，不知当几人称帝，几人称王。',
+    match:'他敢在乱世里说狠话，也敢在胜利后烧掉部下私通敌军的信。他的决断从来不干净，但足够有效。你的选择里，也有这种为了往前走而愿意承担骂名的劲头。你不怕被误解，你怕的是事情烂在原地没人收拾。'
+  },
+  {
+    name:'陶渊明', era:'东晋', role:'隐士 · 归真者',
+    tags:['表达','共情','格局'],
+    v:{ kai:30, jue:42, gong:86, dan:45, ge:62, zi:28, xu:38, biao:90 },
+    voice:'不为五斗米折腰。',
+    match:'他做了八十多天县令就挂印而去，只因为不愿为五斗米折腰。他不是不能争，是觉得不值得。你的共情与表达，让你更在意「活得像不像自己」，而不是「活成别人眼里的样子」。你宁可日子清简一点，也不愿意把心气耗在不喜欢的事情上。'
+  },
+  {
+    name:'杜甫', era:'唐', role:'诗人 · 忧世者',
+    tags:['共情','担当','表达'],
+    v:{ kai:28, jue:32, gong:96, dan:90, ge:80, zi:32, xu:62, biao:92 },
+    voice:'安得广厦千万间，大庇天下寒士俱欢颜。',
+    match:'他一生颠沛，自己住在漏雨的茅屋里，却想着「安得广厦千万间」。他的共情不是姿态，是把自己也放进了那份苦难里。你的选择里，同样有这种先感受、再行动的柔软和坚硬。你会为陌生人难过，而且真的想做点什么。'
+  },
+  {
+    name:'苏轼', era:'北宋', role:'文豪 · 旷达者',
+    tags:['表达','共情','格局'],
+    v:{ kai:70, jue:54, gong:86, dan:76, ge:88, zi:58, xu:54, biao:95 },
+    voice:'竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。',
+    match:'他被贬到黄州、惠州、儋州，一路往南，却一路写诗、修堤、教学生。他不是没痛过，而是把痛消化成了旷达。你的表达与格局，让你在最难的处境里也还能看见别的可能。你知道眼泪擦干之后，日子还得往前走，那就走得漂亮一点。'
+  },
+  {
+    name:'王安石', era:'北宋', role:'改革家 · 执拗者',
+    tags:['开创','担当','决断'],
+    v:{ kai:94, jue:86, gong:48, dan:88, ge:86, zi:64, xu:80, biao:68 },
+    voice:'天变不足畏，祖宗不足法，人言不足恤。',
+    match:'他推行新法，被骂「拗相公」，连老朋友都站出来反对。他还是说「天变不足畏，人言不足恤」。你的开创与担当，让你愿意为了一个更好的结果，先扛下所有的不理解。你认定了方向，就不会因为路上人少而掉头。'
+  },
+  {
+    name:'岳飞', era:'南宋', role:'名将 · 守土者',
+    tags:['担当','秩序','决断'],
+    v:{ kai:62, jue:80, gong:70, dan:98, ge:74, zi:58, xu:92, biao:58 },
+    voice:'三十功名尘与土，八千里路云和月。',
+    match:'他把「还我河山」四个字背在身上，明知朝堂不会支持，还是往前走。他的秩序与担当，是那种「规矩不能坏在我手里」的执拗。你的选择里，也有这种不肯退一步的认真。哪怕所有人都说算了，你还是想把该守的东西守住。'
+  },
+  {
+    name:'王阳明', era:'明', role:'心学宗师 · 知行合一者',
+    tags:['开创','表达','决断'],
+    v:{ kai:92, jue:84, gong:80, dan:86, ge:90, zi:68, xu:64, biao:90 },
+    voice:'知行合一，致良知。',
+    match:'他在龙场悟道，说「心即理」，又说「知行合一」。他不是空谈，而是真的带兵平叛、办书院、教学生。你的开创与表达，让你相信：想清楚了，就该立刻去做。你不喜欢把道理停在嘴上，你要的是它落到地上，砸出一个坑。'
+  },
+  {
+    name:'张居正', era:'明', role:'首辅 · 实干者',
+    tags:['秩序','资源','决断'],
+    v:{ kai:80, jue:90, gong:42, dan:82, ge:88, zi:92, xu:95, biao:60 },
+    voice:'苟利社稷，死生以之。',
+    match:'他做首辅十年，把一条鞭法推下去，让大明的账本重新算得过来。他知道自己死后会被清算，还是做了。你的秩序与资源，让你更愿意去修好那台机器，而不是站在旁边喊。你相信把制度理顺了，比骂一百句都有用。'
+  },
+  {
+    name:'司马迁', era:'西汉', role:'史家 · 记录者',
+    tags:['担当','表达','共情'],
+    v:{ kai:55, jue:58, gong:88, dan:95, ge:86, zi:52, xu:80, biao:92 },
+    voice:'究天人之际，通古今之变，成一家之言。',
+    match:'他受了最屈辱的刑，却没有死，因为他要把那本书写完。他的担当与表达，是把个人的痛压进历史里，换一个更长久的回声。你的选择里，也有那种「先把事情做完再说」的隐忍。你知道有些账，要用一辈子去还。'
+  },
+  {
+    name:'墨子', era:'战国', role:'思想家 · 兼爱者',
+    tags:['共情','担当','开创'],
+    v:{ kai:80, jue:70, gong:95, dan:92, ge:86, zi:60, xu:76, biao:70 },
+    voice:'兼相爱，交相利。',
+    match:'他讲兼爱、非攻，还真的带着弟子去帮宋国守城。他不是只讲道理，而是把道理变成工具和城墙。你的共情与担当，让你愿意为陌生人做具体的事，而不是停在感慨上。你相信善意如果不落地，就只是情绪。'
+  },
+  {
+    name:'班超', era:'东汉', role:'使者 · 开拓者',
+    tags:['开创','决断','格局'],
+    v:{ kai:92, jue:88, gong:48, dan:80, ge:86, zi:74, xu:55, biao:52 },
+    voice:'不入虎穴，焉得虎子。',
+    match:'他投笔从戎，带着三十六个人在西域待了三十一年。他说「不入虎穴，焉得虎子」。你的开创与决断，让你在别人还在犹豫的时候，已经先出发了。你不怕路远，你怕的是一辈子站在原地看着别人走。'
+  },
+  {
+    name:'文天祥', era:'南宋', role:'忠臣 · 守节者',
+    tags:['担当','秩序','表达'],
+    v:{ kai:38, jue:78, gong:74, dan:98, ge:84, zi:38, xu:94, biao:86 },
+    voice:'人生自古谁无死，留取丹心照汗青。',
+    match:'他被俘三年，忽必烈亲自劝降，他只有一句「留取丹心照汗青」。他的担当与秩序，是把气节看得比命更重。你的选择里，也有那条无论如何都不肯越过的底线。你可以输，可以死，但不能变成自己看不起的那种人。'
+  }
+];
+
+/* =========================================================
+   工具函数
+   ========================================================= */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function pearson(a, b){
+  const n = a.length;
+  const ma = a.reduce((s,x)=>s+x,0)/n;
+  const mb = b.reduce((s,x)=>s+x,0)/n;
+  let num=0, da=0, db=0;
+  for(let i=0;i<n;i++){
+    const x = a[i]-ma, y = b[i]-mb;
+    num += x*y; da += x*x; db += y*y;
+  }
+  const den = Math.sqrt(da*db);
+  if(den < 1e-6) return 0;
+  return num/den;
+}
+
+/* =========================================================
+   计分
+   ========================================================= */
+function calcScores(picks){
+  const raw = {};
+  DIMS.forEach(d => raw[d.key] = 0);
+
+  picks.forEach((optIdx, qi)=>{
+    const s = QUESTIONS[qi].opts[optIdx].s;
+    for(const k in s) raw[k] += s[k];
+  });
+
+  // 每个维度的理论最高分
+  const maxp = {};
+  DIMS.forEach(d => maxp[d.key] = 0);
+  QUESTIONS.forEach(q=>{
+    const per = {};
+    DIMS.forEach(d => per[d.key] = 0);
+    q.opts.forEach(o=>{
+      for(const k in o.s) per[k] = Math.max(per[k], o.s[k]);
+    });
+    DIMS.forEach(d => maxp[d.key] += per[d.key]);
+  });
+
+  const scores = {};
+  DIMS.forEach(d=>{
+    const m = maxp[d.key] || 1;
+    const ratio = Math.min(1, raw[d.key] / m);
+    scores[d.key] = Math.max(18, Math.min(99, Math.round(25 + ratio * 74)));
+  });
+  return scores;
+}
+
+/* =========================================================
+   匹配
+   ========================================================= */
+function findMatch(scores){
+  const userVec = DIMS.map(d => scores[d.key]);
+  let best = null, bestCorr = -2;
+  FIGURES.forEach(f=>{
+    const fv = DIMS.map(d => f.v[d.key]);
+    const c = pearson(userVec, fv);
+    if(c > bestCorr){ bestCorr = c; best = f; }
+  });
+  const pct = Math.round(Math.max(86, Math.min(97, 90 + bestCorr * 7)));
+  return { fig: best, pct, corr: bestCorr };
+}
+
+/* =========================================================
+   文案生成
+   ========================================================= */
+function buildExplain(scores, fig){
+  const sorted = DIMS.slice().sort((a,b)=> scores[b.key] - scores[a.key]);
+  const d1 = sorted[0], d2 = sorted[1];
+  const d3 = sorted[2];
+
+  const head =
+    `你的八维倾向里，<b>「${d1.name}」${scores[d1.key]} 分</b>、<b>「${d2.name}」${scores[d2.key]} 分</b>最突出，` +
+    `「${d3.name}」${scores[d3.key]} 分紧随其后。这说明在那些必须做取舍的时刻，你的第一反应往往是${d1.name}，` +
+    `第二步才用${d2.name}去收尾——你不是没有情绪，只是不让情绪替你做决定。`;
+
+  return head + '<br><br>' + fig.match;
+}
+
+/* =========================================================
+   结果渲染
+   ========================================================= */
+function buildResultHTML(fig, pct, scores){
+  const lead = DIMS.reduce((a,b)=> scores[b.key] > scores[a.key] ? b : a);
+
+  const barsHTML = DIMS.map(d=>{
+    const v = scores[d.key];
+    const isLead = d.key === lead.key;
+    return `<div class="bar-row">
+      <span class="bar-name${isLead?' lead':''}">${d.name}</span>
+      <div class="bar-track"><i class="bar-fill${isLead?' lead':''}" data-w="${v}"></i></div>
+      <span class="bar-val${isLead?' lead':''}">${v}</span>
+    </div>`;
+  }).join('');
+
+  const tagsHTML = fig.tags.map(t=>`<span>${t}</span>`).join('');
+
+  return `
+    <div class="res-top">
+      <p class="res-eyebrow">历 史 人 物 匹 配 结 果</p>
+      <div class="res-score">${pct}<em>%</em></div>
+      <div class="res-score-label">匹 配 度</div>
+      <h2 class="res-name">${fig.name}</h2>
+      <p class="res-role">${fig.era} · ${fig.role}</p>
+      <div class="res-tags">${tagsHTML}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">主 导 维 度</div>
+      <div class="lead-wrap">
+        <span class="lead-dim">${lead.name}</span>
+        <span class="lead-score">${scores[lead.key]} 分</span>
+      </div>
+      <div class="hr"></div>
+      <div class="card-label">心 声</div>
+      <blockquote class="voice">「${fig.voice}」</blockquote>
+    </div>
+
+    <div class="card">
+      <div class="card-label">八 维 倾 向</div>
+      <div class="bars">${barsHTML}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">为 什 么 是 T A</div>
+      <p class="explain">${buildExplain(scores, fig)}</p>
+    </div>
+
+    <div class="disclaimer">
+      相近的是部分选择方式，<br>
+      不代表经历、能力或价值相同。
+    </div>
+
+    <button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>
+    <p class="foot-mark">历 史 人 格 测 试</p>
+  `;
+}
+
+function animateBars(){
+  const fills = document.querySelectorAll('.bar-fill');
+  fills.forEach(el => { el.style.width = '0%'; });
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      fills.forEach(el => { el.style.width = el.dataset.w + '%'; });
+    }, 80);
+  });
+}
+
+/* =========================================================
+   流程控制
+   ========================================================= */
+let current = 0;
+let picks = [];
+let locked = false;
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const total = QUESTIONS.length;
+
+  document.getElementById('qIndex').textContent = current + 1;
+  document.getElementById('qTotal').textContent = total;
+  document.getElementById('progressBar').style.width =
+    ((current) / total * 100) + '%';
+
+  const body = document.getElementById('qBody');
+  body.innerHTML = `
+    <h2 class="q-text">${q.q}</h2>
+    <div class="opts" id="opts"></div>
+  `;
+  body.classList.remove('fade-in');
+  void body.offsetWidth;
+  body.classList.add('fade-in');
+
+  const optsWrap = document.getElementById('opts');
+  q.opts.forEach((o, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML =
+      `<span class="opt-idx">${String.fromCharCode(65 + i)}</span>` +
+      `<span class="opt-text">${o.t}</span>`;
+    btn.addEventListener('click', ()=> choose(i, btn));
+    optsWrap.appendChild(btn);
+  });
+}
+
+function choose(idx, btn){
+  if(locked) return;
+  locked = true;
+  btn.classList.add('selected');
+  picks[current] = idx;
+
+  setTimeout(()=>{
+    locked = false;
+    current++;
+    if(current >= QUESTIONS.length){
+      finish();
+    }else{
+      renderQuestion();
+    }
+  }, 280);
+}
+
+function finish(){
+  document.getElementById('progressBar').style.width = '100%';
+
+  const scores = calcScores(picks);
+  const { fig, pct } = findMatch(scores);
+
+  const res = document.getElementById('screen-result');
+  res.innerHTML = buildResultHTML(fig, pct, scores);
+
+  show('screen-result');
+  animateBars();
+
+  const restart = document.getElementById('restartBtn');
+  if(restart){
+    restart.addEventListener('click', ()=>{
+      current = 0; picks = []; locked = false;
+      show('screen-cover');
+    });
+  }
+}
+
+function startQuiz(){
+  current = 0;
+  picks = [];
+  locked = false;
+  document.getElementById('progressBar').style.width = '0%';
+  show('screen-quiz');
+  renderQuestion();
+}
+
+document.getElementById('startBtn').addEventListener('click', startQuiz);
+
+/* 防止 iOS 双击缩放 */
+let lastTouch = 0;
+document.addEventListener('touchend', e=>{
+  const now = Date.now();
+  if(now - lastTouch <= 300) e.preventDefault();
+  lastTouch = now;
+}, { passive:false });
+</script>
+</body>
+</html>
