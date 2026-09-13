@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#080c18">
+<title>天赋能力测试测评报告 · 职业深度版</title>
+<style>
+  :root{
+    --bg:#080c18;
+    --card:rgba(255,255,255,.045);
+    --line:rgba(255,255,255,.09);
+    --txt:#e9edf9;
+    --sub:#8b96b4;
+    --c1:#7dd3fc;
+    --c2:#a78bfa;
+    --c3:#fbbf24;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--txt);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(60% 40% at 15% 0%, rgba(124,58,237,.20), transparent 70%),
+      radial-gradient(55% 38% at 90% 12%, rgba(14,165,233,.16), transparent 70%),
+      radial-gradient(70% 45% at 50% 100%, rgba(251,191,36,.07), transparent 70%);
+  }
+  .app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- 封面 ---------- */
+  #screen-cover.active{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    min-height:100vh;padding:48px 26px calc(48px + env(safe-area-inset-bottom));
+    text-align:center;
+  }
+  .cover-badge{
+    font-size:12px;letter-spacing:.22em;color:var(--c1);
+    border:1px solid rgba(125,211,252,.35);border-radius:999px;
+    padding:6px 16px;margin-bottom:32px;
+    background:rgba(125,211,252,.06);
+  }
+  .cover-title{
+    font-size:clamp(24px,7.2vw,32px);
+    font-weight:800;line-height:1.55;margin:0 0 22px;
+    letter-spacing:.02em;
+    background:linear-gradient(120deg,#ffffff 10%,#bcd8ff 55%,#c4b5fd 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .cover-sub{
+    font-size:13.5px;color:var(--sub);line-height:2;margin:0 0 46px;
+  }
+  .cover-sub b{color:#b9c4e0;font-weight:500;}
+  .btn-main{
+    appearance:none;border:none;
+    width:100%;max-width:320px;
+    padding:17px 24px;border-radius:16px;
+    font-size:16px;font-weight:700;letter-spacing:.06em;
+    color:#08101f;cursor:pointer;
+    background:linear-gradient(120deg,#7dd3fc,#a78bfa 60%,#f0abfc);
+    box-shadow:0 10px 34px -8px rgba(124,58,237,.65);
+    transition:transform .18s ease, box-shadow .18s ease;
+    font-family:inherit;
+  }
+  .btn-main:active{transform:scale(.965);box-shadow:0 6px 20px -8px rgba(124,58,237,.65);}
+  .cover-foot{font-size:11.5px;color:#5b6787;margin-top:26px;letter-spacing:.08em;}
+
+  /* ---------- 答题 ---------- */
+  .quiz-top{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;gap:12px;
+    padding:calc(16px + env(safe-area-inset-top)) 18px 14px;
+    background:linear-gradient(180deg,rgba(8,12,24,.96),rgba(8,12,24,.82));
+    backdrop-filter:blur(14px);
+  }
+  .back-btn{
+    appearance:none;border:1px solid var(--line);
+    background:rgba(255,255,255,.04);color:var(--txt);
+    width:34px;height:34px;border-radius:11px;
+    font-size:19px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    padding-bottom:3px;flex:0 0 auto;font-family:inherit;
+  }
+  .back-btn:disabled{opacity:.25;}
+  .progress{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;}
+  #progressFill{
+    height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,#7dd3fc,#a78bfa);
+    transition:width .35s cubic-bezier(.4,0,.2,1);
+  }
+  #progressText{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;min-width:36px;text-align:right;}
+
+  .quiz-body{padding:26px 18px calc(60px + env(safe-area-inset-bottom));}
+  .q-index{
+    font-size:12px;letter-spacing:.2em;color:var(--c2);
+    margin-bottom:10px;font-weight:600;
+  }
+  .q-title{
+    font-size:19px;font-weight:700;line-height:1.65;
+    margin:0 0 28px;letter-spacing:.01em;
+    animation:fadeUp .4s ease both;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+  .options{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;align-items:center;gap:13px;
+    width:100%;text-align:left;
+    padding:17px 16px;border-radius:16px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.035);
+    color:var(--txt);font-size:15px;line-height:1.55;
+    cursor:pointer;font-family:inherit;
+    transition:all .2s ease;
+    animation:fadeUp .45s ease both;
+  }
+  .opt .dot{
+    flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+    border:1.6px solid rgba(255,255,255,.28);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;color:var(--sub);font-weight:700;
+    transition:all .2s ease;
+  }
+  .opt:active{transform:scale(.978);}
+  .opt.sel{
+    border-color:rgba(167,139,250,.85);
+    background:linear-gradient(120deg,rgba(125,211,252,.16),rgba(167,139,250,.20));
+    box-shadow:0 0 0 3px rgba(167,139,250,.13);
+  }
+  .opt.sel .dot{
+    border-color:transparent;
+    background:linear-gradient(120deg,#7dd3fc,#a78bfa);
+    color:#08101f;
+  }
+
+  /* ---------- 结果 ---------- */
+  #screen-result{padding:calc(18px + env(safe-area-inset-top)) 0 calc(50px + env(safe-area-inset-bottom));}
+  .res-head{
+    text-align:center;padding:10px 22px 22px;
+  }
+  .res-head h1{
+    font-size:clamp(19px,5.6vw,23px);line-height:1.7;font-weight:800;margin:0;
+    background:linear-gradient(120deg,#fff,#bfd7ff 60%,#c4b5fd);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .res-head p{font-size:12px;color:var(--sub);letter-spacing:.14em;margin:12px 0 0;}
+
+  .card{
+    margin:0 14px 15px;padding:22px 18px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:linear-gradient(160deg,rgba(255,255,255,.062),rgba(255,255,255,.018));
+    backdrop-filter:blur(8px);
+    animation:fadeUp .5s ease both;
+    box-shadow:0 8px 28px -20px rgba(0,0,0,.9);
+  }
+  .card-label{
+    font-size:11px;letter-spacing:.2em;color:var(--c2);
+    font-weight:700;margin-bottom:14px;
+  }
+
+  .type-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .type-name{
+    font-size:26px;font-weight:800;letter-spacing:.01em;
+    background:linear-gradient(120deg,#7dd3fc,#a78bfa 70%,#f0abfc);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .type-pct{font-size:17px;font-weight:700;color:var(--c3);font-variant-numeric:tabular-nums;}
+  .type-desc{font-size:13.5px;color:#aab5cf;margin:14px 0 22px;line-height:1.9;}
+  .type-desc b{color:#e2e8fb;font-weight:600;}
+
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-label{
+    flex:0 0 84px;font-size:12px;color:var(--sub);
+    white-space:nowrap;letter-spacing:.01em;
+  }
+  .bar-track{
+    flex:1;height:7px;border-radius:99px;
+    background:rgba(255,255,255,.075);overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,rgba(125,211,252,.75),rgba(167,139,250,.75));
+    transition:width .85s cubic-bezier(.22,1,.36,1);
+  }
+  .bar-fill.hot{background:linear-gradient(90deg,#7dd3fc,#c084fc,#fbbf24);box-shadow:0 0 12px rgba(192,132,252,.55);}
+  .bar-val{
+    flex:0 0 22px;text-align:right;font-size:12.5px;
+    color:#cdd6ee;font-variant-numeric:tabular-nums;font-weight:600;
+  }
+
+  .detail-list{display:flex;flex-direction:column;gap:1px;margin-bottom:18px;}
+  .detail-row{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.055);
+    font-size:14px;
+  }
+  .detail-row:last-child{border-bottom:none;}
+  .detail-name{flex:1;color:#dfe6f8;}
+  .detail-score{
+    font-weight:700;font-variant-numeric:tabular-nums;
+    color:#cdd6ee;min-width:24px;text-align:right;font-size:14.5px;
+  }
+  .detail-level{
+    flex:0 0 auto;font-size:11.5px;padding:3px 10px;border-radius:99px;
+    font-weight:600;letter-spacing:.02em;
+  }
+  .lv-a{background:rgba(251,191,36,.14);color:#fcd34d;border:1px solid rgba(251,191,36,.3);}
+  .lv-b{background:rgba(125,211,252,.12);color:#7dd3fc;border:1px solid rgba(125,211,252,.28);}
+  .lv-c{background:rgba(255,255,255,.05);color:#8b96b4;border:1px solid rgba(255,255,255,.09);}
+  .lv-d{background:rgba(255,255,255,.03);color:#5b6787;border:1px solid rgba(255,255,255,.07);}
+
+  .type-line{
+    font-size:13.5px;color:#aab5cf;
+    padding-top:14px;border-top:1px dashed rgba(255,255,255,.11);
+  }
+  .type-line b{color:#c4b5fd;font-weight:700;}
+
+  .kv{
+    display:flex;gap:12px;padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,.055);
+    font-size:13.5px;
+  }
+  .kv:last-of-type{border-bottom:none;}
+  .kv span{flex:0 0 88px;color:var(--sub);}
+  .kv b{color:#dfe6f8;font-weight:600;flex:1;}
+
+  .first-talent{
+    margin-top:16px;padding:18px 16px;border-radius:16px;
+    background:linear-gradient(120deg,rgba(125,211,252,.12),rgba(167,139,250,.16));
+    border:1px solid rgba(167,139,250,.3);
+    text-align:center;
+  }
+  .ft-label{font-size:11px;letter-spacing:.24em;color:#c4b5fd;font-weight:700;margin-bottom:8px;}
+  .ft-name{font-size:19px;font-weight:800;color:#fff;margin-bottom:6px;}
+  .ft-level{font-size:12.5px;color:var(--c3);font-weight:600;}
+
+  .lead{font-size:14px;color:#c8d2e8;margin:0 0 16px;line-height:1.95;}
+  .sub-label{
+    font-size:12px;color:var(--c1);font-weight:700;
+    letter-spacing:.1em;margin:20px 0 10px;
+  }
+  .sub-label:first-of-type{margin-top:6px;}
+  ul.tick{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px;}
+  ul.tick li{
+    position:relative;padding-left:20px;
+    font-size:13.5px;color:#b5c0da;line-height:1.75;
+  }
+  ul.tick li::before{
+    content:'';position:absolute;left:2px;top:10px;
+    width:6px;height:6px;border-radius:50%;
+    background:linear-gradient(120deg,#7dd3fc,#a78bfa);
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    font-size:12.5px;padding:7px 13px;border-radius:10px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.09);
+    color:#c2cce4;
+  }
+
+  .career{
+    padding:15px 0;border-bottom:1px solid rgba(255,255,255,.055);
+  }
+  .career:last-child{border-bottom:none;padding-bottom:4px;}
+  .career-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .career-name{font-size:15.5px;font-weight:700;color:#eef2ff;}
+  .career-pct{
+    font-size:14px;font-weight:800;color:var(--c3);
+    font-variant-numeric:tabular-nums;flex:0 0 auto;
+  }
+  .career-tag{
+    display:inline-block;font-size:11px;color:#8fa6d8;
+    margin:7px 0 6px;padding:2px 9px;border-radius:6px;
+    background:rgba(125,211,252,.09);
+    border:1px solid rgba(125,211,252,.18);
+  }
+  .career-desc{font-size:13px;color:#98a4c0;margin:0;line-height:1.8;}
+
+  .caution{
+    margin-top:18px;padding:15px 16px;border-radius:14px;
+    background:rgba(251,191,36,.06);
+    border:1px solid rgba(251,191,36,.2);
+  }
+  .caution-title{font-size:12px;color:#fcd34d;font-weight:700;letter-spacing:.1em;margin-bottom:8px;}
+  .caution p{font-size:13px;color:#c3b98f;margin:0;line-height:1.85;}
+
+  .voice{
+    margin-top:18px;padding:18px 16px;border-radius:16px;
+    background:linear-gradient(120deg,rgba(167,139,250,.13),rgba(125,211,252,.09));
+    border:1px solid rgba(167,139,250,.26);
+  }
+  .voice-title{font-size:11px;letter-spacing:.22em;color:#c4b5fd;font-weight:700;margin-bottom:10px;}
+  .voice p{font-size:14px;color:#dfe6f8;margin:0;line-height:1.9;font-style:italic;}
+
+  .phase{
+    position:relative;padding:0 0 4px 22px;
+    border-left:1.5px solid rgba(255,255,255,.1);
+    margin-bottom:22px;
+  }
+  .phase:last-child{margin-bottom:0;}
+  .phase::before{
+    content:'';position:absolute;left:-6px;top:5px;
+    width:10px;height:10px;border-radius:50%;
+    background:linear-gradient(120deg,#7dd3fc,#a78bfa);
+    box-shadow:0 0 0 3px rgba(8,12,24,1);
+  }
+  .phase-title{font-size:14px;font-weight:700;color:#c4b5fd;margin-bottom:10px;}
+  .phase ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;}
+  .phase li{
+    font-size:13.5px;color:#b5c0da;line-height:1.75;
+    padding-left:15px;position:relative;
+  }
+  .phase li::before{
+    content:'·';position:absolute;left:3px;top:-2px;
+    color:#7dd3fc;font-weight:700;font-size:17px;
+  }
+
+  .sim-box{
+    margin-top:16px;padding:16px;border-radius:14px;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .sim-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:9px;}
+  .sim-name em{font-style:normal;color:var(--c1);}
+  .sim-text{font-size:13px;color:#a6b1cc;line-height:1.95;margin:0;text-align:justify;}
+
+  .grow{
+    margin-top:14px;font-size:13px;color:#8b96b4;
+    padding:12px 14px;border-radius:12px;
+    background:rgba(255,255,255,.03);
+    border:1px dashed rgba(255,255,255,.11);
+  }
+  .grow b{color:#fcd34d;font-weight:700;}
+
+  .reset-wrap{text-align:center;padding:16px 22px 0;}
+  .btn-ghost{
+    appearance:none;font-family:inherit;
+    background:rgba(255,255,255,.05);
+    border:1px solid var(--line);
+    color:#aab5cf;font-size:14px;
+    padding:13px 34px;border-radius:14px;cursor:pointer;
+    transition:all .2s ease;
+  }
+  .btn-ghost:active{transform:scale(.96);background:rgba(255,255,255,.09);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ 封面 ============ -->
+  <section id="screen-cover" class="screen active">
+    <div class="cover-badge">多元智能理论 · 职业深度版</div>
+    <h1 class="cover-title">去端你天生该吃的那碗饭<br>去闯你本就该走的那条路</h1>
+    <p class="cover-sub">
+      <b>天赋能力测试测评报告</b><br>
+      10 个维度 · 12 道情境题 · 约 2 分钟
+    </p>
+    <button class="btn-main" id="startBtn">开始测试</button>
+    <div class="cover-foot">请凭第一直觉作答 · 答案无对错</div>
+  </section>
+
+  <!-- ============ 答题 ============ -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-top">
+      <button class="back-btn" id="backBtn">‹</button>
+      <div class="progress"><div id="progressFill"></div></div>
+      <span id="progressText">1/12</span>
+    </div>
+    <div class="quiz-body">
+      <div class="q-index" id="qIndex">Q1</div>
+      <h2 class="q-title" id="qTitle"></h2>
+      <div class="options" id="options"></div>
+    </div>
+  </section>
+
+  <!-- ============ 结果 ============ -->
+  <section id="screen-result" class="screen">
+    <div class="res-head">
+      <h1>去端你天生该吃的那碗饭<br>去闯你本就该走的那条路</h1>
+      <p>天赋能力测试测评报告 · 职业深度版</p>
+    </div>
+    <div id="resultBody"></div>
+    <div class="reset-wrap">
+      <button class="btn-ghost" id="resetBtn">重新测试</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================
+     1. 基础数据
+     ========================================================= */
+
+  // 10 个维度（F 为身体-动觉，即题面中未列出的第 6 项）
+  var DIMS = {
+    A: { name: '语言' },
+    B: { name: '逻辑-算数' },
+    C: { name: '空间' },
+    D: { name: '内省' },
+    E: { name: '人际' },
+    F: { name: '身体-动觉' },
+    G: { name: '音乐' },
+    H: { name: '自然' },
+    I: { name: '创造' },
+    J: { name: '美学' }
+  };
+
+  var TYPE_NAMES = {
+    A: '语言表达型', B: '逻辑分析型', C: '空间构象型', D: '内省洞察型',
+    E: '人际共情型', F: '身体动觉型', G: '音乐感知型', H: '自然探索型',
+    I: '创意创想型', J: '美学审美型'
+  };
+
+  /* ---------------------------------------------------------
+     12 道情境题。
+     ★ 每个选项对象自带 dim 字段——无论显示顺序如何被打乱，
+       该选项永远只给同一个维度加分，保证「相同选择 = 相同结果」。
+     --------------------------------------------------------- */
+  var QUESTIONS = [
+    {
+      q: '周末有一整天空闲，你最想怎么过？',
+      options: [
+        { t: '读一本书、写点东西', d: 'A' },
+        { t: '戴上耳机听歌、摆弄乐器', d: 'G' },
+        { t: '出门拍照、逛展、看设计', d: 'J' },
+        { t: '去户外走走、看看植物和动物', d: 'H' }
+      ]
+    },
+    {
+      q: '团队合作时，你自然会承担的角色是？',
+      options: [
+        { t: '出点子、提新玩法', d: 'I' },
+        { t: '把大家的想法整理成方案', d: 'A' },
+        { t: '协调关系、让气氛不僵', d: 'E' },
+        { t: '盯数据、算成本、找漏洞', d: 'B' }
+      ]
+    },
+    {
+      q: '朋友向你倾诉烦恼，你更可能——',
+      options: [
+        { t: '安静地听，先感受他的情绪', d: 'E' },
+        { t: '帮他把事情的因果理清楚', d: 'B' },
+        { t: '用一句话说到他心坎里', d: 'A' },
+        { t: '带他出去走走、运动一下', d: 'F' }
+      ]
+    },
+    {
+      q: '走进一个陌生的空间，你第一注意到的是——',
+      options: [
+        { t: '光线、配色和整体质感', d: 'J' },
+        { t: '布局和动线顺不顺', d: 'C' },
+        { t: '里面的人在做什么、什么关系', d: 'E' },
+        { t: '有没有奇怪的噪音、背景音乐', d: 'G' }
+      ]
+    },
+    {
+      q: '学一个新东西，对你最有效的方式是——',
+      options: [
+        { t: '先自己琢磨，总结出规律', d: 'D' },
+        { t: '直接上手做，边做边调', d: 'F' },
+        { t: '画成图或表，把结构摆出来', d: 'C' },
+        { t: '找人聊，听别人怎么讲', d: 'E' }
+      ]
+    },
+    {
+      q: '你更能忍受哪一种工作？',
+      options: [
+        { t: '需要长期观察、照顾活的东西', d: 'H' },
+        { t: '需要反复打磨细节、追求好看', d: 'J' },
+        { t: '需要不断产出新点子', d: 'I' },
+        { t: '需要长时间独处、跟自己对话', d: 'D' }
+      ]
+    },
+    {
+      q: '别人夸你，最让你开心的是——',
+      options: [
+        { t: '“你说得真清楚，我一下就懂了”', d: 'A' },
+        { t: '“你做的这个真好看”', d: 'J' },
+        { t: '“跟你在一起很舒服”', d: 'E' },
+        { t: '“你想得跟别人不一样”', d: 'I' }
+      ]
+    },
+    {
+      q: '接到一个从没做过的任务，你的第一反应是——',
+      options: [
+        { t: '先拆成几步，排个顺序', d: 'B' },
+        { t: '先在脑子里或纸上画出大概样子', d: 'C' },
+        { t: '先搜一搜，看看别人怎么做的', d: 'A' },
+        { t: '先试一下，手感对了再说', d: 'F' }
+      ]
+    },
+    {
+      q: '下面哪种瞬间最让你有成就感？',
+      options: [
+        { t: '一段旋律或声音被调得刚刚好', d: 'G' },
+        { t: '一个系统或流程被你理顺了', d: 'B' },
+        { t: '一个空间或画面被你摆得舒服', d: 'C' },
+        { t: '一个人因为你改变了想法', d: 'E' }
+      ]
+    },
+    {
+      q: '你更愿意把时间花在——',
+      options: [
+        { t: '大自然里，观察动植物', d: 'H' },
+        { t: '一个人待着，整理自己的想法', d: 'D' },
+        { t: '做点手工或运动，让身体忙起来', d: 'F' },
+        { t: '琢磨一段声音、节奏或旋律', d: 'G' }
+      ]
+    },
+    {
+      q: '面对一个复杂问题，你倾向于——',
+      options: [
+        { t: '找规律、建模型', d: 'B' },
+        { t: '换个角度重新定义问题', d: 'I' },
+        { t: '看看历史或自然里有没有类似的例子', d: 'H' },
+        { t: '先感受一下哪里“不对劲”', d: 'D' }
+      ]
+    },
+    {
+      q: '你希望别人记住你的——',
+      options: [
+        { t: '品味和审美', d: 'J' },
+        { t: '想法和创造力', d: 'I' },
+        { t: '声音或表达', d: 'G' },
+        { t: '可靠和专业', d: 'B' }
+      ]
+    }
+  ];
+
+  /* =========================================================
+     2. 每个维度的解读内容
+     ========================================================= */
+  var DIM_INFO = {
+    A: {
+      summary: '语言天赋突出，擅长用词句组织信息、影响他人。选择时优先考虑需要“说”和“写”的场景——内容、传播、教学与表达。',
+      read: '用语言组织信息与影响他人，能把复杂的事说清楚，把平淡的事说出彩。对措辞、语气与叙事结构天然敏感，擅长把想法变成别人听得懂的话。',
+      traits: ['爱读爱写，对字句敏感', '擅长讲故事、打比方', '别人常找你“帮忙改文案”', '对语气和措辞很在意'],
+      apps: ['内容编辑 / 文案策划', '品牌公关与传播', '培训讲师 / 知识付费', '编剧 / 小说 / 脚本'],
+      tips: ['每天写 300 字并公开发布', '练习把专业内容讲给外行听', '做个人账号沉淀你的表达', '刻意练“一句话说清一件事”'],
+      sim: '董宇辉',
+      simDesc: '用语言把知识与情绪一起交付给听众',
+      voice: '我想把复杂的事说清楚，让人听完就懂了。',
+      simText: '你和他的相似之处，在于你们都相信“把话说清楚”本身就是一种能力。他讲一段玉米、一本书、一个历史人物，能从细节滑进情绪，再滑回知识；你的表达也是这样，不喜欢干巴巴地抛结论，而是先铺场景、再给洞察。你们共同的底层动作是“翻译”——把复杂的、专业的东西，翻译成别人能接得住的话。此外你们都偏爱真实感：他很少用漂亮的空话，你也更愿意用具体的例子去说服人。不同之处在于，他早已把表达变成了职业，而你的表达力可能还散落在日常聊天和随手记录里。如果能把这套“随口就能讲明白”的能力固定成作品——一篇文章、一期播客、一门课——它会迅速变成你稀缺的职业资产。'
+    },
+    B: {
+      summary: '逻辑-算数天赋突出，擅长找规律、拆问题和算清账。选择时优先考虑需要“结构”和“证据”的场景——数据、策略、工程与决策。',
+      read: '用结构与数据思考，擅长在混乱里找到规律，把大问题拆成能验证的小问题。对数字、因果和漏洞敏感，习惯先想清楚再动手。',
+      traits: ['看到数字想先算一遍', '喜欢追因果、找漏洞', '习惯用表格 / 流程图理清事情', '对“不严谨”比较敏感'],
+      apps: ['数据分析 / 商业分析', '算法 / 研发 / 工程', '财务 / 风控 / 审计', '战略咨询 / 运营策略'],
+      tips: ['学一门数据工具（Excel / SQL / Python）', '把一次决策写成复盘报告', '刻意练习“结论先行”的表达', '用模型解释一个你熟悉的业务'],
+      sim: '张一鸣',
+      simDesc: '用逻辑与数据驱动决策',
+      voice: '我不怕复杂，我怕的是没想清楚就动手。',
+      simText: '你和他相似的地方，是都把“想清楚”当成动手之前的必要动作。他习惯把一个大问题拆成若干可验证的小假设，然后一个一个去证伪；你在生活里也是这么做的——遇到选择先列条件，遇到争论先找前提，遇到混乱先画结构。你们都不太吃“感觉上应该”这一套，更相信可被观察、可被复盘的东西。另一个共同点是冷静：他在高压下依然能保持信息密度，你在情绪起伏时也倾向于先把事情本身理清楚。区别在于，他把这套能力放大到了组织与决策层面，而你可能还停留在“自己把事情想明白”。如果能把你的分析过程写出来、讲出来，让更多人看懂你的推理链，你的影响力会远远超过现在。'
+    },
+    C: {
+      summary: '空间天赋突出，脑中能“搭模型”，对结构、比例与方位敏感。选择时优先考虑需要“看得见的形状”的场景——设计、建筑、界面与可视化。',
+      read: '用图形与方位思考，能在脑子里把东西转起来。对结构、比例、动线敏感，擅长把抽象的想法变成看得见的样子。',
+      traits: ['看地图不容易迷路', '拼装、收纳、摆布局有天赋', '喜欢画草图表达想法', '对房间动线有直觉'],
+      apps: ['建筑 / 室内设计', 'UI / UX 设计', '工业设计 / 产品结构', '展览 / 舞台 / 场景设计'],
+      tips: ['学一款建模或设计工具', '每天画一张草图', '把想法做成可视化方案', '刻意观察好设计的动线'],
+      sim: '贝聿铭',
+      simDesc: '用空间讲光影与秩序',
+      voice: '我要的不是好看，是站在那儿就觉得对。',
+      simText: '你和他相似的地方，是都习惯“先在脑子里建一遍”。他做设计前会在脑中反复走一遍动线，感受光从哪个角度进来、人从哪里转弯；你面对一个房间、一份 PPT、一件家具，也会先在脑海中把它摆好，才动手。你们对比例和秩序有近乎本能的挑剔：差两厘米、多一道线，别人看不出来，你会难受。另一个共同点是克制——他很少堆砌符号，你也更愿意用结构而不是装饰去解决问题。区别是，他把空间感变成了世界级作品，而你的空间感目前多半只用在收纳、摆位和随手画的草图上。把它系统地用在一个真实的项目里——哪怕只是重做自己家的一个角落——你会发现这是一种能直接变现的能力。'
+    },
+    D: {
+      summary: '内省天赋突出，清楚自己要什么，能管理情绪与动机。选择时优先考虑需要“深度思考”和“自我驱动”的场景——研究、咨询、写作与个人品牌。',
+      read: '向内的觉察力强，能看清自己的情绪、动机与边界。习惯复盘，做决定前要想很久，一旦想通就很坚定。',
+      traits: ['常复盘、爱写日记', '独处能回血', '对内心状态敏感', '做决定前需要想很久'],
+      apps: ['心理咨询 / 教练', '用户研究 / 洞察', '写作 / 编剧', '个人品牌 / 独立创作'],
+      tips: ['固定复盘节奏（每周一次）', '把情绪写成可分析的记录', '练习把需求说出口', '给自己留“不被打扰”的时间'],
+      sim: '周国平',
+      simDesc: '向内求索，并把洞察写成文字',
+      voice: '我想弄明白自己到底要什么，再决定往哪走。',
+      simText: '你和他相似的地方，是都把“向内看”当成一种日常功课。他习惯把生活里的困惑写下来，慢慢想、反复想，直到想通为止；你也一样，很多决定不是靠外部建议做出来的，而是靠自己在心里来回走了很多遍。你们都不太容易被热闹带跑，人多的场合能应付，但真正恢复能量是在独处的时候。另一个共同点是诚实：他对自己的软弱和欲望不回避，你也很少骗自己。区别在于，他把这些思考变成了持续出版的文字，形成了长期的影响力，而你的思考可能还停在日记本里。如果你愿意把内省的结果输出成作品、课程或陪伴式服务，这份“看得清自己”的能力，恰恰是很多人最缺的东西。'
+    },
+    E: {
+      summary: '人际天赋突出，能读懂他人情绪与需求，协调关系、带动气氛。选择时优先考虑需要“和人打交道”的场景——销售、管理、教育与社群。',
+      read: '能快速感知他人的情绪与需求，擅长协调关系、化解尴尬、把人聚到一起。你在人群里往往是最容易被信任的那一个。',
+      traits: ['朋友多，常被倾诉', '能察觉气氛的细微变化', '擅长协调与撮合', '不太喜欢正面冲突'],
+      apps: ['销售 / 商务拓展', 'HR / 招聘 / 组织发展', '项目经理 / 团队管理', '社群运营 / 教育'],
+      tips: ['刻意练习“先听后说”', '建立并维护人脉台账', '学一点谈判与冲突处理', '牵头组织一次跨部门协作'],
+      sim: '何炅',
+      simDesc: '让身边的人都感到舒服的沟通能力',
+      voice: '我想让身边的人舒服，也想让事情真的往前走。',
+      simText: '你和他相似的地方，是都拥有一种“让人放松下来”的能力。他能在冷场的瞬间接住话，把尴尬变成笑声；你也能在别人情绪上来的时候，先看到对方真正在意的东西，而不是急着讲道理。你们都不是靠压过别人来推进事情的类型，而是靠让对方愿意跟你一起走。另一个共同点是分寸感：他知道什么时候该说话、什么时候该退一步，你在关系里也很少咄咄逼人。区别在于，他把这种能力放在了高密度的舞台与镜头前，而你的这份天赋目前更多消耗在朋友聚会和日常协调里。如果你的工作不能持续让你接触人、影响人，你会明显地感到空转——这是你最需要警惕的信号。'
+    },
+    F: {
+      summary: '身体-动觉天赋突出，用身体学习和表达，手眼协调、动作记忆强。选择时优先考虑需要“动手”和“身体参与”的场景——运动、手工、表演与硬件。',
+      read: '用身体学习与表达，动作记忆强、手眼协调好。很多东西你说不清楚，但一做就会，身体比语言先反应过来。',
+      traits: ['学动作特别快', '坐不住，喜欢动手', '喜欢运动、手工、拆装', '身体比语言先反应'],
+      apps: ['运动教练 / 体能训练', '舞者 / 演员 / 表演', '手工艺 / 产品原型', '康复治疗 / 物理治疗'],
+      tips: ['保持每周 3 次规律运动', '练一项需要精细动作的技能', '把“动手”变成可展示的作品', '用身体状态管理情绪'],
+      sim: '苏炳添',
+      simDesc: '用身体训练抵达极致',
+      voice: '我说不太清楚，但我做出来你就知道了。',
+      simText: '你和他相似的地方，是都相信“身体不会骗人”。他把起跑角度的细微调整练到肌肉记忆里，你把一个新动作学两遍就能上手——你们靠的不是反复讲解，而是身体本身的理解力。你们也都吃得下枯燥：他知道零点零一秒要靠上千次重复换来，你也不排斥把手上的事一遍遍做到顺手。另一个共同点是专注当下：训练时要全部注意力都在身体上，你在动手做事时也最容易进入那种忘记时间的状态。区别在于，他把身体训练推到了竞技极限，而你的身体天赋可能只体现在“手巧”“坐不住”这些日常细节上。如果把这份手感固定成一项专业技能——一项运动、一门手艺、一种器械操作——它会比很多纯脑力技能更难被替代。'
+    },
+    G: {
+      summary: '音乐天赋突出，擅长节奏和旋律感；优势主要在“声音”和“节奏”上。选择时优先考虑能用“听觉”创造价值的场景——音乐、演讲或音频内容。',
+      read: '用声音组织情绪与注意力，提升表达与体验质量。对节奏、旋律、音色天然敏感，能从声音中提取情绪信息、感知时间与结构。',
+      traits: ['能识别“副歌 / 主歌”的层次', '对“话音 / 语调”敏感', '学乐器“找感觉”快', '对声音环境敏感，嘈杂处难受'],
+      apps: ['内容配音 / 播客 / 剪辑', '演讲与主持', '声音品牌与客服体验', '音乐 / 舞台相关岗位'],
+      tips: ['学一门乐器（尤克里里 / 口琴）', '演讲沟通注意“语音节奏”', '尝试播客、配音、音乐制作', '用音乐调节情绪，建立“情绪歌单”'],
+      sim: '李健',
+      simDesc: '以声音质感与叙事节奏打动人心',
+      voice: '我想做的不是热闹的东西，而是能让人安静下来的声音。',
+      simText: '你和他相似的地方，不在于音色，而在于“用声音处理情绪”的方式。他写歌时习惯先把旋律里的画面感找出来，再填进克制的词句；你听到一段声音时，也会先注意它的节奏和情绪，再决定怎么回应。你们都不是张扬型的人，表达欲藏在细节里：一个停顿、一次换气、一处尾音的处理，才是你们真正在说话的地方。他说过，写歌常常是“先有一个模糊的感觉，再慢慢把它说清楚”——这几乎就是你的思考方式，做判断时直觉先行，逻辑随后才补上。这种组合让你在需要审美与克制感的格外出彩，但也要注意，别因为过分追求“对味”，而错过那些需要速度和锋芒的机会。'
+    },
+    H: {
+      summary: '自然天赋突出，对生命与自然系统敏感，善于观察、分类与照顾。选择时优先考虑需要“和活的东西打交道”的场景——生态、农业、园艺与户外。',
+      read: '对自然与生命系统敏感，能注意到环境里细微的变化，喜欢观察、分类、照顾和记录。在自然里你更容易进入专注状态。',
+      traits: ['喜欢动植物和户外', '能察觉环境的细微变化', '爱分类、爱收集', '在自然里更放松'],
+      apps: ['生态 / 农业 / 生物研究', '园艺 / 景观设计', '兽医 / 动物照护', '户外教育 / 可持续咨询'],
+      tips: ['开始一份自然观察笔记', '每周至少去一次户外', '系统学一个自然领域的知识', '把兴趣做成可持续的小项目'],
+      sim: '竺可桢',
+      simDesc: '用长期观察记录自然的变化',
+      voice: '我想慢一点，看清楚再动手。',
+      simText: '你和他相似的地方，是都有一种“慢下来观察”的耐心。他几十年如一日记录物候、气温和花开的时间，靠的不是天赋爆发，而是持续在场；你也是那种会蹲下来看一株植物、记住楼下那棵树什么时候发芽的人。你们对“活的东西”有天然的亲近感，照顾动植物时格外有耐心，也更容易在自然里进入专注。另一个共同点是分类癖：他靠分类整理数据，你靠分类理解世界。区别在于，他把观察变成了科学记录和长期价值，而你的观察目前大多停留在个人感受。如果你能给这份观察加上记录、分析和输出，它完全可以变成生态、农业、园艺、自然教育这些方向里非常扎实的专业能力。'
+    },
+    I: {
+      summary: '创造天赋突出，擅长产生新连接与新可能，不满足于“照做”。选择时优先考虑需要“从 0 到 1”的场景——内容、产品、创意与创业。',
+      read: '产生新连接与新可能，不满足于“照做”，喜欢重新定义问题。点子多、上手快，但需要有人帮你把想法落地。',
+      traits: ['点子多，爱改规则', '对“一直都这样”敏感', '喜欢从 0 到 1', '容易同时对很多事感兴趣'],
+      apps: ['内容创作 / 策划', '产品经理 / 增长', '广告创意 / 品牌', '创业 / 新业务探索'],
+      tips: ['建“想法库”，每天记一个点子', '每月把一个想法做成小样', '和务实的人组队互补', '给自己设“完成”而非“完美”的标准'],
+      sim: '乔布斯',
+      simDesc: '把技术与审美揉成一件产品',
+      voice: '我不想照着做，我想做点别人还没做过的。',
+      simText: '你和他相似的地方，是都对“一直都这样”有本能的反感。他不会接受一个“能用但难看”的产品，你也不会满足于把别人做过的方案再抄一遍。你们脑子里总在同时跑好几个可能性，看到一个东西的第一反应常常是“如果换成另一种做法会怎样”。另一个共同点是审美驱动：他对字体、圆角、材质近乎偏执，你对最终成品的“感觉”同样挑剔——这让你做出来的东西往往带着辨识度。区别在于，他把创造力收束成了一条极致的产品线，而你的点子可能散落在各种备忘录里，落地率不高。你真正需要的不是更多灵感，而是一个能帮你把想法推向完成的人或机制。'
+    },
+    J: {
+      summary: '美学天赋突出，对形式、色彩、质感与和谐敏感。选择时优先考虑需要“判断好不好看”的场景——设计、影像、品牌与空间。',
+      read: '对形式、色彩、质感与和谐敏感，能一眼判断“对不对味”。你不一定说得出道理，但知道哪里差了一点。',
+      traits: ['对配色、排版、穿搭挑剔', '能感知质感和细节', '喜欢逛展、拍照、收藏', '作品天然带“审美分”'],
+      apps: ['平面 / 视觉设计', '摄影 / 影像', '品牌 / 包装设计', '空间软装 / 陈列'],
+      tips: ['建立个人灵感收藏夹', '学基础设计原则（对比 / 对齐 / 留白）', '每周做一张图或拍一组照片', '把审美用在一个具体作品上'],
+      sim: '原研哉',
+      simDesc: '用极简设计传达事物的本质',
+      voice: '我不想解释好不好看，我只想让你一眼就感觉到。',
+      simText: '你和他相似的地方，是都相信“少一点会更好”。他把无印良品做成了一种克制的语言，你在生活里也会本能地删掉多余的东西——多一个颜色、多一行字、多一块装饰，都会让你不舒服。你们靠直觉判断“对不对味”，但这份直觉背后其实是长年累月的观察：他对材质和留白极度敏感，你对配色、版式和质感同样一眼就能分辨高低。另一个共同点是克制中的讲究：不是不在乎，而是把力气花在别人看不见的地方。区别在于，他把审美变成了完整的品牌方法论，而你的审美目前更多体现在个人生活里。一旦你学会把“感觉”翻译成可以交付的方案，审美就会成为你最硬的竞争力。'
+    }
+  };
+
+  /* =========================================================
+     3. 职业库
+     ========================================================= */
+  var CAREERS = {
+    A: [
+      { n: '内容编辑 / 文案策划', p: '语言', d: '直接运用语言天赋，先练“写得清楚”，再练“写得动人”' },
+      { n: '品牌公关 / 传播', p: '语言 + 人际', d: '需要表达力与关系感，可从内容岗切入' },
+      { n: '培训讲师', p: '语言 + 人际', d: '把知识讲明白是稀缺能力，先从小范围分享练起' },
+      { n: '编剧 / 小说作者', p: '语言 + 创造', d: '需要长期输出，建议先完整写完一个短篇' },
+      { n: '主持人 / 主播', p: '语言 + 音乐', d: '语言节奏与临场感是关键，可从短视频练手' }
+    ],
+    B: [
+      { n: '数据分析师', p: '逻辑-算数', d: '直接运用逻辑天赋，从 Excel / SQL 开始积累' },
+      { n: '算法 / 研发工程师', p: '逻辑 + 创造', d: '需要长期技术积累，建议先独立完成一个项目' },
+      { n: '财务 / 风控分析师', p: '逻辑', d: '对严谨度要求高，适合能沉住气的人' },
+      { n: '战略咨询顾问', p: '逻辑 + 语言', d: '需要结构化思考与表达，建议先积累行业经验' },
+      { n: '运营策略 / 增长', p: '逻辑 + 创造', d: '用数据验证想法，从一次小实验开始' }
+    ],
+    C: [
+      { n: '建筑设计师', p: '空间 + 美学', d: '需专业背景，建议系统学习后再入行' },
+      { n: '室内设计师', p: '空间 + 美学', d: '门槛相对友好，从软件和案例临摹开始' },
+      { n: 'UI / UX 设计师', p: '空间 + 美学 + 人际', d: '需理解用户，先做一套完整作品集' },
+      { n: '工业设计师', p: '空间 + 创造', d: '需要动手能力与建模基础' },
+      { n: '展览 / 舞台设计', p: '空间 + 美学 + 创造', d: '适合喜欢现场感与氛围营造的人' }
+    ],
+    D: [
+      { n: '心理咨询师', p: '内省 + 人际', d: '需系统训练与督导，建议先学基础课程' },
+      { n: '职业教练 / 生涯规划', p: '内省 + 人际', d: '用洞察帮别人看清方向，可从公益咨询练手' },
+      { n: '作家 / 编剧', p: '内省 + 语言', d: '需要长期独处与输出，先坚持每日写作' },
+      { n: '用户研究员', p: '内省 + 人际 + 逻辑', d: '把洞察变成产品决策依据' },
+      { n: '个人品牌主理人', p: '内省 + 创造', d: '把自己的思考变成可持续的内容资产' }
+    ],
+    E: [
+      { n: '销售 / 商务拓展', p: '人际', d: '直接运用人际天赋，从建立信任开始' },
+      { n: 'HR / 招聘 / 组织发展', p: '人际 + 内省', d: '需要同时懂人和懂组织' },
+      { n: '项目经理', p: '人际 + 逻辑', d: '协调资源推进事情，是很好的综合训练' },
+      { n: '社群运营', p: '人际 + 创造', d: '把人聚起来，并持续提供价值' },
+      { n: '教师 / 教育工作者', p: '人际 + 语言', d: '影响他人是最长期的价值' }
+    ],
+    F: [
+      { n: '运动教练 / 体能训练', p: '身体-动觉 + 人际', d: '需专业认证与持续训练' },
+      { n: '舞蹈演员 / 表演', p: '身体-动觉 + 音乐 + 美学', d: '需长期基本功训练' },
+      { n: '手工艺人 / 产品原型', p: '身体-动觉 + 空间', d: '从一件作品开始积累口碑' },
+      { n: '康复治疗师', p: '身体-动觉 + 人际', d: '需要专业医学背景' },
+      { n: '硬件产品经理', p: '身体-动觉 + 逻辑 + 创造', d: '既要动手也要懂需求' }
+    ],
+    G: [
+      { n: '音乐人 / 歌手', p: '音乐', d: '直接运用天赋，建议系统学音乐理论' },
+      { n: '音乐制作人', p: '音乐 + 创造', d: '需音乐感知与创作能力，学音乐制作软件' },
+      { n: 'DJ / 电子音乐', p: '音乐 + 创造', d: '需节奏感与创意，可从混音软件开始' },
+      { n: '音频后期 / 播客制作', p: '音乐 + 语言', d: '把声音剪出节奏感，从剪辑软件入手' },
+      { n: '声音品牌 / 客服体验设计', p: '音乐 + 人际', d: '用声音塑造品牌感受' }
+    ],
+    H: [
+      { n: '生态研究员', p: '自然 + 逻辑', d: '需要长期观察与专业训练' },
+      { n: '园艺 / 景观设计', p: '自然 + 空间 + 美学', d: '把自然感变成可设计的空间' },
+      { n: '兽医 / 动物照护', p: '自然 + 身体-动觉 + 人际', d: '需要专业资质与耐心' },
+      { n: '户外教育导师', p: '自然 + 人际 + 身体-动觉', d: '带别人重新认识自然' },
+      { n: '可持续 / 环保咨询', p: '自然 + 逻辑 + 语言', d: '把自然视角带进商业决策' }
+    ],
+    I: [
+      { n: '产品经理', p: '创造 + 人际', d: '需创新思维与用户洞察，建议先积累行业经验' },
+      { n: '创业者', p: '创造 + 人际', d: '可从副业项目验证想法' },
+      { n: '内容创作者 / 自媒体', p: '创造 + 语言 + 美学', d: '用持续输出建立个人影响力' },
+      { n: '广告创意总监', p: '创造 + 语言 + 美学', d: '需要大量案例积累' },
+      { n: '品牌策划', p: '创造 + 人际 + 语言', d: '把想法变成可传播的品牌故事' }
+    ],
+    J: [
+      { n: '平面 / 视觉设计师', p: '美学 + 空间', d: '从软件和版式基础开始，积累作品集' },
+      { n: '摄影师 / 影像创作', p: '美学 + 空间 + 内省', d: '用影像表达你的观察' },
+      { n: '品牌设计', p: '美学 + 创造 + 语言', d: '需要理解商业与审美的平衡' },
+      { n: '服装 / 产品设计', p: '美学 + 空间 + 创造', d: '把审美落到可量产的物件上' },
+      { n: '空间软装 / 陈列', p: '美学 + 空间', d: '用搭配改变空间气质' }
+    ]
+  };
+
+  /* 谨慎方向 */
+  var CAUTION = {
+    A: '需要大量公开表达与文字输出的方向，如主播、公关',
+    B: '需要严密数据推理的方向，如财务、算法',
+    C: '需要精确空间想象的方向，如建筑制图、工业建模',
+    D: '需要长时间独处与深度自我觉察的方向，如独立研究、长篇写作',
+    E: '需要高频人际互动的方向，如销售、客服',
+    F: '需要精准身体控制与表现力的方向，如运动教练、舞蹈演员',
+    G: '需要敏锐听觉与节奏感的方向，如音乐制作、配音',
+    H: '需要长期自然观察与耐心的方向，如生态研究、兽医',
+    I: '需要持续原创输出的方向，如创意总监、内容创业',
+    J: '需要高审美判断的方向，如视觉设计、品牌审美把控'
+  };
+
+  /* =========================================================
+     4. 行动计划（按维度组合）
+     ========================================================= */
+  var ACTIONS = {
+    A: {
+      short: ['每天写 300 字并公开发布', '录音朗读，练语速与停顿'],
+      mid: ['把一个专业话题写成系列内容', '完成一次公开演讲或分享'],
+      long: ['建立个人表达风格与影响力', '用文字与讲述持续输出价值']
+    },
+    B: {
+      short: ['学一个数据工具（Excel / SQL）', '把日常问题拆成可验证的小问题'],
+      mid: ['完整做一次数据分析或复盘报告', '用模型解释一个业务现象'],
+      long: ['让“想清楚再动手”成为你的标签', '用结构化思维解决复杂问题']
+    },
+    C: {
+      short: ['每天画一张草图', '学一个设计或建模工具的基础'],
+      mid: ['做一套完整的设计方案', '用可视化方式表达一个复杂想法'],
+      long: ['把空间感变成可交付的作品', '用结构思维解决现实问题']
+    },
+    D: {
+      short: ['每天写 3 行情绪日记', '每周留一段完全不被打扰的独处时间'],
+      mid: ['做一次系统的自我梳理', '把内心洞察写成可分享的内容'],
+      long: ['让自我觉察成为稳定内核', '用洞察力帮他人看清自己']
+    },
+    E: {
+      short: ['每周主动联系一位老朋友', '练习“先听后说”'],
+      mid: ['牵头组织一次协作型活动', '学一点谈判与冲突处理'],
+      long: ['把信任变成你的职业资产', '用关系网络推动更大的事情']
+    },
+    F: {
+      short: ['每周 3 次规律运动', '练一项需要精细动作的技能'],
+      mid: ['把一项身体技能练到可以展示', '用动手方式做一个小作品'],
+      long: ['让身体成为表达的一部分', '用“手感”建立别人替代不了的优势']
+    },
+    G: {
+      short: ['建立自己的“情绪歌单”', '每天听一首不同风格的作品并记下感受'],
+      mid: ['学音乐理论基础', '试着做一段完整的音频或混音'],
+      long: ['用音乐 / 声音能力创造价值', '让声音成为你的个人标识']
+    },
+    H: {
+      short: ['开始一份自然观察笔记', '每周至少去一次户外'],
+      mid: ['系统学习一个自然领域（植物 / 动物 / 生态）', '参与一次环保或种植项目'],
+      long: ['把对自然的理解变成专业能力', '用长期观察积累别人没有的认知']
+    },
+    I: {
+      short: ['建“想法库”，每天记一个点子', '换一条路线走，找新刺激'],
+      mid: ['把一个想法真正落地', '做一个小而完整的作品'],
+      long: ['让创新成为标签和竞争力', '用天赋组合创造别人无法复制的价值']
+    },
+    J: {
+      short: ['建一个灵感收藏夹', '每周做一张图或拍一组照片'],
+      mid: ['学基础设计原则（对比 / 对齐 / 留白）', '完成一套完整的视觉作品'],
+      long: ['建立自己的审美体系', '用审美为产品或内容增值']
+    }
+  };
+
+  /* =========================================================
+     5. 工具函数
+     ========================================================= */
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function levelText(s) {
+    if (s >= 16) return '非常擅长';
+    if (s >= 12) return '有些擅长';
+    if (s >= 6) return '不太擅长';
+    return '完全不擅长';
+  }
+  function levelClass(s) {
+    if (s >= 16) return 'lv-a';
+    if (s >= 12) return 'lv-b';
+    if (s >= 6) return 'lv-c';
+    return 'lv-d';
+  }
+
+  /* =========================================================
+     6. 状态
+     ========================================================= */
+  var sessionQuestions = [];
+  var answers = [];
+  var currentQ = 0;
+
+  var screenCover = document.getElementById('screen-cover');
+  var screenQuiz = document.getElementById('screen-quiz');
+  var screenResult = document.getElementById('screen-result');
+  var qIndexEl = document.getElementById('qIndex');
+  var qTitleEl = document.getElementById('qTitle');
+  var optionsEl = document.getElementById('options');
+  var progressFill = document.getElementById('progressFill');
+  var progressText = document.getElementById('progressText');
+  var backBtn = document.getElementById('backBtn');
+  var resultBody = document.getElementById('resultBody');
+
+  function showScreen(el) {
+    [screenCover, screenQuiz, screenResult].forEach(function (s) {
+      s.classList.remove('active');
+    });
+    el.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  /* =========================================================
+     7. 开始测试
+     ========================================================= */
+  function startQuiz() {
+    // 每次会话重新洗牌选项顺序（题目顺序固定、选项内容固定）
+    sessionQuestions = QUESTIONS.map(function (q) {
+      return { q: q.q, options: shuffle(q.options) };
+    });
+    answers = new Array(sessionQuestions.length).fill(-1);
+    currentQ = 0;
+    showScreen(screenQuiz);
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    var q = sessionQuestions[currentQ];
+    qIndexEl.textContent = 'Q' + (currentQ + 1);
+    qTitleEl.textContent = q.q;
+
+    // 进度
+    progressFill.style.width = ((currentQ) / sessionQuestions.length * 100) + '%';
+    progressText.textContent = (currentQ + 1) + '/' + sessionQuestions.length;
+    backBtn.disabled = currentQ === 0;
+
+    var html = '';
+    q.options.forEach(function (opt, i) {
+      html += '<button class="opt" data-idx="' + i + '" style="animation-delay:' + (i * 55) + 'ms">' +
+        '<span class="dot">' + String.fromCharCode(65 + i) + '</span>' +
+        '<span class="opt-text">' + opt.t + '</span>' +
+        '</button>';
+    });
+    optionsEl.innerHTML = html;
+
+    optionsEl.querySelectorAll('.opt').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        onSelect(parseInt(btn.getAttribute('data-idx'), 10), btn);
+      });
+    });
+  }
+
+  var locking = false;
+  function onSelect(idx, btn) {
+    if (locking) return;
+    locking = true;
+
+    answers[currentQ] = idx;
+    optionsEl.querySelectorAll('.opt').forEach(function (b) { b.classList.remove('sel'); });
+    btn.classList.add('sel');
+
+    setTimeout(function () {
+      locking = false;
+      if (currentQ < sessionQuestions.length - 1) {
+        currentQ++;
+        renderQuestion();
+      } else {
+        progressFill.style.width = '100%';
+        finish();
+      }
+    }, 300);
+  }
+
+  backBtn.addEventListener('click', function () {
+    if (currentQ > 0) {
+      currentQ--;
+      renderQuestion();
+    }
+  });
+
+  /* =========================================================
+     8. 计算
+     ========================================================= */
+  function computeResult() {
+    // 原始分：每个选项固定 +3 分给它的维度（确定性，与显示顺序无关）
+    var raw = {};
+    Object.keys(DIMS).forEach(function (k) { raw[k] = 0; });
+
+    answers.forEach(function (optIdx, qi) {
+      if (optIdx < 0) return;
+      var opt = sessionQuestions[qi].options[optIdx];
+      raw[opt.d] += 3;
+    });
+
+    var totalRaw = Object.keys(raw).reduce(function (a, k) { return a + raw[k]; }, 0);
+    var maxRaw = Math.max.apply(null, Object.keys(raw).map(function (k) { return raw[k]; }));
+    if (maxRaw <= 0) maxRaw = 1;
+
+    // 20 分制
+    var scores = {};
+    Object.keys(DIMS).forEach(function (k) {
+      scores[k] = Math.max(1, Math.min(20, Math.round(raw[k] / maxRaw * 20)));
+    });
+
+    // 排序（分数优先，原始分做平手判定，字母顺序兜底保证确定性）
+    var order = Object.keys(DIMS).sort(function (a, b) {
+      if (scores[b] !== scores[a]) return scores[b] - scores[a];
+      if (raw[b] !== raw[a]) return raw[b] - raw[a];
+      return a < b ? -1 : 1;
+    });
+
+    var top1 = order[0], top2 = order[1], top3 = order[2];
+    var low3 = [order[9], order[8], order[7]]; // 最低的三个，从最低开始
+
+    // 类型匹配度
+    var matchPct = Math.round(raw[top1] / Math.max(totalRaw, 1) * 200);
+    matchPct = Math.max(40, Math.min(96, matchPct));
+
+    return {
+      raw: raw,
+      scores: scores,
+      order: order,
+      top1: top1, top2: top2, top3: top3,
+      low3: low3,
+      matchPct: matchPct
+    };
+  }
+
+  /* =========================================================
+     9. 渲染结果
+     ========================================================= */
+  function careerPct(career, scores) {
+    // 该职业涉及的维度
+    var dims = [];
+    var map = {
+      '语言': 'A', '逻辑-算数': 'B', '空间': 'C', '内省': 'D', '人际': 'E',
+      '身体-动觉': 'F', '音乐': 'G', '自然': 'H', '创造': 'I', '美学': 'J'
+    };
+    career.p.split('+').forEach(function (seg) {
+      var key = seg.trim();
+      if (map[key]) dims.push(map[key]);
+    });
+    if (!dims.length) dims = ['A'];
+
+    var avg = dims.reduce(function (s, d) { return s + scores[d] / 20; }, 0) / dims.length;
+    return Math.max(72, Math.min(99, Math.round(70 + 30 * avg)));
+  }
+
+  function buildCareers(res) {
+    var list = [];
+    var seen = {};
+    var dimsOrder = [res.top1, res.top2, res.top3];
+    var quotas = [3, 2, 1];
+
+    dimsOrder.forEach(function (dim, i) {
+      var pool = CAREERS[dim] || [];
+      var added = 0;
+      for (var k = 0; k < pool.length && added < quotas[i]; k++) {
+        var c = pool[k];
+        if (seen[c.n]) continue;
+        seen[c.n] = true;
+        list.push(c);
+        added++;
+      }
+    });
+
+    // 兜底补足
+    var allDims = res.order;
+    for (var d = 0; d < allDims.length && list.length < 6; d++) {
+      var p2 = CAREERS[allDims[d]] || [];
+      for (var m = 0; m < p2.length && list.length < 6; m++) {
+        if (seen[p2[m].n]) continue;
+        seen[p2[m].n] = true;
+        list.push(p2[m]);
+      }
+    }
+    return list;
+  }
+
+  function renderResult(res) {
+    var s = res.scores;
+    var d1 = DIMS[res.top1].name;
+    var d2 = DIMS[res.top2].name;
+    var d3 = DIMS[res.top3].name;
+    var l1 = DIMS[res.low3[0]].name;
+    var l2 = DIMS[res.low3[1]].name;
+    var l3 = DIMS[res.low3[2]].name;
+    var info = DIM_INFO[res.top1];
+    var minDim = res.low3[0];
+    var careers = buildCareers(res);
+
+    var html = '';
+
+    /* ---------- 第 2 张：天赋类型 + 图谱 ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">天赋能力图谱 · 10 维度</div>' +
+      '<div class="type-head">' +
+        '<span class="type-name">' + TYPE_NAMES[res.top1] + '</span>' +
+        '<span class="type-pct">' + res.matchPct + '%</span>' +
+      '</div>' +
+      '<p class="type-desc">你最具有 <b>' + d1 + '</b>天赋、<b>' + d2 + '</b>天赋、<b>' + d3 +
+        '</b>天赋，而 <b>' + l1 + '</b>、<b>' + l2 + '</b>、<b>' + l3 + '</b> 天赋相对较弱。</p>' +
+      '<div class="bars">';
+
+    Object.keys(DIMS).forEach(function (k) {
+      var w = Math.round(s[k] / 20 * 100);
+      html += '<div class="bar-row">' +
+        '<span class="bar-label">' + k + ' ' + DIMS[k].name + '</span>' +
+        '<div class="bar-track"><div class="bar-fill' + (k === res.top1 ? ' hot' : '') +
+          '" data-w="' + w + '"></div></div>' +
+        '<span class="bar-val">' + s[k] + '</span>' +
+        '</div>';
+    });
+
+    html += '</div></div>';
+
+    /* ---------- 第 3 张：各项天赋详情 ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">各项天赋详情</div>' +
+      '<div class="detail-list">';
+
+    Object.keys(DIMS).forEach(function (k) {
+      html += '<div class="detail-row">' +
+        '<span class="detail-name">' + DIMS[k].name + '</span>' +
+        '<span class="detail-score">' + s[k] + '</span>' +
+        '<span class="detail-level ' + levelClass(s[k]) + '">' + levelText(s[k]) + '</span>' +
+        '</div>';
+    });
+
+    html += '</div>' +
+      '<div class="type-line">天赋类型：<b>' + TYPE_NAMES[res.top1] + '</b>（' + d1 + ' / ' + d2 + ' / ' + d3 + '）</div>' +
+      '</div>';
+
+    /* ---------- 第 4 张：核心优势组合 ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">核心优势</div>' +
+      '<p class="lead">' + info.summary + '</p>' +
+      '<div class="kv"><span>优势组合</span><b>' + d1 + ' + ' + d2 + ' + ' + d3 + '</b></div>' +
+      '<div class="kv"><span>潜在挑战</span><b>相对薄弱的是' + l1 + '与' + l2 + '，建议通过团队协作与互补型伙伴来弥补。</b></div>' +
+      '<div class="first-talent">' +
+        '<div class="ft-label">第一天赋</div>' +
+        '<div class="ft-name">' + d1 + '天赋 ' + s[res.top1] + '/20</div>' +
+        '<div class="ft-level">' + levelText(s[res.top1]) + '</div>' +
+      '</div>' +
+      '</div>';
+
+    /* ---------- 第 5 张：第一天赋解读 ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">' + d1 + '天赋解读</div>' +
+      '<p class="lead">' + info.read + '</p>' +
+      '<div class="sub-label">可能特征</div>' +
+      '<ul class="tick">' + info.traits.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      '<div class="sub-label">职场最佳应用</div>' +
+      '<div class="chips">' + info.apps.map(function (t) { return '<span class="chip">' + t + '</span>'; }).join('') + '</div>' +
+      '</div>';
+
+    /* ---------- 第 6 张：协同 + 建议 + 相似的人 ---------- */
+    var synergy = [
+      '+' + d2 + '天赋' + synergyPhrase(res.top2),
+      '+' + d3 + '天赋' + synergyPhrase(res.top3)
+    ];
+
+    html += '<div class="card">' +
+      '<div class="card-label">与其他天赋协同</div>' +
+      '<ul class="tick">' + synergy.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      '<div class="sub-label">发挥建议</div>' +
+      '<ul class="tick">' + info.tips.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+
+      '<div class="sim-box">' +
+        '<div class="sim-name">与你相似的人：<em>' + info.sim + '</em></div>' +
+        '<p class="sim-text">' + info.simText + '</p>' +
+      '</div>' +
+
+      '<div class="grow">成长空间：<b>' + DIMS[minDim].name + '天赋 ' + s[minDim] + ' 分</b>，需要更多练习与刻意补强。</div>' +
+      '</div>';
+
+    /* ---------- 第 7 张：推荐方向（前 3） ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">职业发展指南 · 推荐方向</div>';
+
+    careers.slice(0, 3).forEach(function (c) {
+      html += '<div class="career">' +
+        '<div class="career-head">' +
+          '<span class="career-name">' + c.n + '</span>' +
+          '<span class="career-pct">' + careerPct(c, s) + '%</span>' +
+        '</div>' +
+        '<span class="career-tag">' + c.p + '</span>' +
+        '<p class="career-desc">' + c.d + '</p>' +
+        '</div>';
+    });
+
+    html += '</div>';
+
+    /* ---------- 第 8 张：更多方向 + 谨慎方向 + 职业心声 ---------- */
+    html += '<div class="card">' +
+      '<div class="card-label">更多可能方向</div>';
+
+    careers.slice(3, 6).forEach(function (c) {
+      html += '<div class="career">' +
+        '<div class="career-head">' +
+          '<span class="career-name">' + c.n + '</span>' +
+          '<span class="career-pct">' + careerPct(c, s) + '%</span>' +
+        '</div>' +
+        '<span class="career-tag">' + c.p + '</span>' +
+        '<p class="career-desc">' + c.d + '</p>' +
+        '</div>';
+    });
+
+    html += '<div class="caution">' +
+        '<div class="caution-title">建议谨慎方向</div>' +
+        '<p>' + CAUTION[res.low3[0]] + '；以及' + CAUTION[res.low3[1]] + '。这些方向并非不能做，但需要额外投入更多时间补齐短板。</p>' +
+      '</div>' +
+
+      '<div class="voice">' +
+        '<div class="voice-title">职业心声 · 你的倾向</div>' +
+        '<p>“' + info.voice + '”</p>' +
+      '</div>' +
+      '</div>';
+
+    /* ---------- 第 9 张：行动计划 ---------- */
+    var shortItems = ACTIONS[res.top1].short.concat([ACTIONS[res.top2].short[0]]);
+    var midItems = ACTIONS[res.top1].mid.concat([ACTIONS[res.top2].mid[0]]);
+    var longItems = ACTIONS[res.top1].long.concat([ACTIONS[res.top3].long[0]]);
+
+    html += '<div class="card">' +
+      '<div class="card-label">行动计划 · 分阶段成长路径</div>' +
+
+      '<div class="phase">' +
+        '<div class="phase-title">短期（1–3 个月）</div>' +
+        '<ul>' + shortItems.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+
+      '<div class="phase">' +
+        '<div class="phase-title">中期（6–12 个月）</div>' +
+        '<ul>' + midItems.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+
+      '<div class="phase">' +
+        '<div class="phase-title">长期（持续）</div>' +
+        '<ul>' + longItems.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+
+      '</div>';
+
+    resultBody.innerHTML = html;
+
+    // 条形图动画
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        resultBody.querySelectorAll('.bar-fill').forEach(function (el) {
+          el.style.width = el.getAttribute('data-w') + '%';
+        });
+      });
+    });
+  }
+
+  /* 协同短语 */
+  function synergyPhrase(dim) {
+    var map = {
+      A: '让你的表达更有说服力和传播力',
+      B: '让你的想法有结构和可验证性',
+      C: '让抽象的想法变成看得见的形状',
+      D: '让你的方向更清楚、不容易跑偏',
+      E: '让你更容易被别人理解和接纳',
+      F: '让表达落到具体的动作和手感上',
+      G: '让你的表达自带节奏与情绪感染力',
+      H: '让你的观察更细致、更贴近真实世界',
+      I: '让你的方案有新角度、不落俗套',
+      J: '让你的成品在质感上更高级'
+    };
+    return map[dim] || '与你形成互补';
+  }
+
+  function finish() {
+    var res = computeResult();
+    renderResult(res);
+    setTimeout(function () {
+      showScreen(screenResult);
+    }, 260);
+  }
+
+  /* =========================================================
+     10. 事件绑定
+     ========================================================= */
+  document.getElementById('startBtn').addEventListener('click', startQuiz);
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    showScreen(screenCover);
+  });
+
+})();
+</script>
+</body>
+</html>
