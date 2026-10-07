@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0B0E1A" />
+<title>测一测，你在异世界的 隐藏天赋是什么？</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#0B0E1A;
+    --card:#151A2E;
+    --accent:#E8B86D;
+    --accent-dim:#8A6A3B;
+    --text:#F2EDE4;
+    --text-dim:#A9A39A;
+    --line:#E8B86D33;
+    --title-font:"Songti SC","STSong","Noto Serif SC",serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #E8B86D2e, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #E8B86D16, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #E8B86D99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#ffffff12;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#E8B86D26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#E8B86D14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#E8B86D14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#E8B86D14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <p class="cover-eyebrow">异世界天赋</p>
+      <h1 class="cover-title">测一测，你在异世界的<br>隐藏天赋是什么？</h1>
+      <p class="cover-sub">每个人的灵魂里，都藏着一道<br>只属于异世界的微光。</p>
+      <div class="cover-quote">集市尽头，那只无人看管的发光沙漏正轻轻震动，你伸出手的瞬间，命运的齿轮开始重新咬合。</div>
+      <div class="cover-meta"><span>共 10 题</span><i></i><span>约 2 分钟</span></div>
+      <button class="btn-primary" id="startBtn">唤醒天赋</button>
+      <p class="cover-note">18位异世界旅人，10道灵魂两难，测出你未被点亮的原初天赋。</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen"></section>
+
+</div>
+
+<script>
+var DIMS=[{"key": "ling", "name": "灵觉"}, {"key": "po", "name": "破阵"}, {"key": "shou", "name": "守序"}, {"key": "ying", "name": "影契"}, {"key": "yan", "name": "言灵"}, {"key": "zhu", "name": "铸物"}, {"key": "xing", "name": "星引"}, {"key": "wang", "name": "亡语"}];
+var QUESTIONS=[{"text": "你在异世界集市发现一只发光沙漏，它无人看管，但触碰可能唤醒封印。你会？", "options": [{"t": "轻轻碰一下，感受它的温度与心跳", "s": {"ling": 3, "xing": 1, "zhu": 1}}, {"t": "蹲下来观察上面流动的符文结构", "s": {"yan": 3, "shou": 2, "ling": 1}}, {"t": "直接把它倒转，看时间倒流的后果", "s": {"po": 3, "ying": 2, "wang": 1}}]}, {"text": "你的异世界同伴被贵族诬陷偷窃，你知道真相但说出会暴露同伴的逃亡身份。你会？", "options": [{"t": "当众说出真相，哪怕同伴必须再次逃亡", "s": {"po": 3, "yan": 2, "shou": 1}}, {"t": "沉默，事后帮同伴策划更安全的离开", "s": {"ying": 3, "ling": 2, "wang": 1}}, {"t": "用伪造的证据让贵族自己露出破绽", "s": {"yan": 2, "shou": 3, "zhu": 1}}]}, {"text": "你在废墟里捡到一本会低语未来的书，但每读一页就会忘掉一段过去的记忆。你会？", "options": [{"t": "只读最后一页，直接知道结局", "s": {"xing": 3, "po": 2, "wang": 1}}, {"t": "一页一页读，用记忆换完整预知", "s": {"ling": 3, "yan": 2, "xing": 1}}, {"t": "把书合上，用现在去赌未来", "s": {"shou": 3, "zhu": 2, "po": 1}}]}, {"text": "城门口的守卫是你旧友，他求你放行一队被通缉的难民，但你会因此被革职。你会？", "options": [{"t": "放行，革职后跟着难民一起走", "s": {"po": 3, "ling": 2, "ying": 1}}, {"t": "拒绝，但连夜帮难民找另一条路", "s": {"shou": 3, "zhu": 2, "ying": 1}}, {"t": "让旧友自己决定，你假装没看见", "s": {"ying": 3, "wang": 2, "yan": 1}}]}, {"text": "你在异世界醒来，发现自己能听见植物说话，但每听一次就会失去一段人类语言。你会？", "options": [{"t": "继续听，用人类语言换万物的秘密", "s": {"ling": 3, "wang": 2, "yan": 1}}, {"t": "只和一棵老树保持对话，控制代价", "s": {"shou": 3, "zhu": 2, "ling": 1}}, {"t": "教植物说人类语言，双向交换", "s": {"yan": 3, "xing": 2, "po": 1}}]}, {"text": "你的影子在满月夜活了过来，它说可以替你承受一次致命伤，但之后要带走你一半寿命。你会？", "options": [{"t": "答应，把影子当作战友而非工具", "s": {"ying": 3, "wang": 2, "po": 1}}, {"t": "拒绝，用锻炼和策略避免致命伤", "s": {"shou": 3, "zhu": 2, "xing": 1}}, {"t": "和影子谈判，用其他代价替代寿命", "s": {"yan": 3, "ling": 2, "ying": 1}}]}, {"text": "你发现异世界的魔力来自一颗被囚禁的星辰，释放它会引发大陆魔力潮汐。你会？", "options": [{"t": "释放它，让魔力重新自由流淌", "s": {"po": 3, "xing": 2, "ling": 1}}, {"t": "维持囚禁，但定期去和它说话", "s": {"shou": 3, "wang": 2, "yan": 1}}, {"t": "寻找第三种方式，让星辰自愿留下", "s": {"xing": 3, "zhu": 2, "ling": 1}}]}, {"text": "你的导师临终前把禁忌咒语传给你，叮嘱只有大陆毁灭时才能使用。当晚你就预见了毁灭。你会？", "options": [{"t": "立刻使用，哪怕被所有人误解", "s": {"po": 3, "yan": 2, "wang": 1}}, {"t": "先验证预言，找到更温和的解法", "s": {"shou": 3, "ling": 2, "zhu": 1}}, {"t": "把咒语教给值得信任的同伴共同决定", "s": {"yan": 3, "xing": 2, "ying": 1}}]}, {"text": "你在异世界可以打造一件神器，但材料需要你亲手毁掉自己最珍视的一件信物。你会？", "options": [{"t": "毁掉信物，打造能保护更多人的神器", "s": {"zhu": 3, "po": 2, "shou": 1}}, {"t": "保留信物，用替代材料做一件次品", "s": {"shou": 3, "ling": 2, "wang": 1}}, {"t": "把信物熔进神器，让它以另一种方式存在", "s": {"zhu": 3, "xing": 2, "ying": 1}}]}, {"text": "你回到现实世界的唯一传送门即将关闭，但你的异世界同伴正被追兵围困。你会？", "options": [{"t": "冲回去救同伴，永远留在异世界", "s": {"po": 3, "ying": 2, "ling": 1}}, {"t": "穿过门，在现实世界寻找再次打开的方法", "s": {"xing": 3, "shou": 2, "zhu": 1}}, {"t": "把门留给同伴，自己引开追兵", "s": {"wang": 3, "po": 2, "yan": 1}}]}];
+var FIGURES=[{"name": "沙漏守夜人", "era": "沙纪元", "role": "时间税吏", "tags": ["灵觉", "守序", "孤独"], "v": {"ling": 88, "po": 42, "shou": 76, "ying": 35, "yan": 50, "zhu": 60, "xing": 55, "wang": 48}, "voice": "每一粒沙都记得你遗忘的事。", "match": "你蹲在沙漏前，手指悬在玻璃表面，能感到里面每一粒沙都在轻轻撞你的指纹。你不急着倒转，而是数到第七次震动才开口问它：你在等谁？这一幕对应你答题时总选观察与感受，不选破坏与占有。你身上有一种把时间当活物对待的温柔，这让你在异世界成为少数能与时间税吏对话的人。你不需要掌控一切，你只需要在正确的时刻轻轻碰一下。你适合成为沙漏守夜人，在无人看见的夜晚，替所有迷路的人记住他们出发时的模样。"}, {"name": "裂阵先锋", "era": "铁火纪", "role": "破城者", "tags": ["破阵", "言灵", "冲动"], "v": {"ling": 50, "po": 92, "shou": 30, "ying": 55, "yan": 70, "zhu": 45, "xing": 40, "wang": 38}, "voice": "墙就是用来倒的，问题只是从哪边推。", "match": "你站在城门下，掌心贴着铁皮，能感到另一侧守军的呼吸节奏。你不等命令，也不等完美计划，你只问一句：从哪边推最省力？然后你就推了。这对应你答题时总选直接面对、正面突破的选项，哪怕代价是暴露自己。你身上有一种把僵局当邀请的胆量，异世界的城墙在你面前不是障碍，而是待拆的礼物。你适合成为裂阵先锋，在所有人犹豫时第一个迈出那一步，让后来者知道墙后面是什么。"}, {"name": "律令抄写官", "era": "银律代", "role": "契约公证人", "tags": ["守序", "言灵", "耐心"], "v": {"ling": 62, "po": 35, "shou": 90, "ying": 40, "yan": 78, "zhu": 65, "xing": 48, "wang": 42}, "voice": "写下来的字，比说出来的话更重。", "match": "你在异世界法庭的侧厅里，面前摊着三份互相矛盾的证词，你逐字比对墨迹的深浅和笔锋的停顿。你不急着裁决，你只相信写下来的东西。这对应你答题时总选先验证、先观察、先寻找第三条路的选项。你身上有一种让混乱自动排队的秩序感，异世界的契约在你手里不会变成陷阱，而会成为所有人可以依靠的栏杆。你适合成为律令抄写官，在喧哗中守住那条最细却最关键的线。"}, {"name": "影巷引路人", "era": "暮影年", "role": "暗巷向导", "tags": ["影契", "灵觉", "沉默"], "v": {"ling": 75, "po": 48, "shou": 42, "ying": 91, "yan": 55, "zhu": 38, "xing": 60, "wang": 52}, "voice": "影子不撒谎，它只是不说全部。", "match": "你走在异世界最窄的巷子里，两侧墙壁上的影子比人先动，你跟着其中一道拐进没有门牌的入口。你不问它去哪，它也不问你为什么跟来。这对应你答题时总选沉默、事后行动、让影子替你承担的选项。你身上有一种在暗处依然能看清道路的能力，异世界的阴影对你不是威胁，而是另一套地图。你适合成为影巷引路人，带着那些不敢走在光里的人，穿过只有你能看见的缝隙。"}, {"name": "言灵咏叹者", "era": "回声期", "role": "咒歌诗人", "tags": ["言灵", "星引", "共情"], "v": {"ling": 70, "po": 45, "shou": 55, "ying": 48, "yan": 93, "zhu": 50, "xing": 72, "wang": 40}, "voice": "说出口的每一个字，都会在别处发芽。", "match": "你在异世界的集市中央，用别人听不懂的调子唱出一段交易，买主和卖主同时愣住，然后同时点头。你没有用力，只是把双方心里的话编成了同一段旋律。这对应你答题时总选用语言交换、用谈判替代对抗的选项。你身上有一种让词语变成桥梁的天赋，异世界的咒语在你嘴里不是武器，而是握手。你适合成为言灵咏叹者，在所有人吵得不可开交时，唱出那句让空气安静下来的话。"}, {"name": "星炉铸师", "era": "星火纪", "role": "神器锻造者", "tags": ["铸物", "守序", "专注"], "v": {"ling": 55, "po": 50, "shou": 80, "ying": 35, "yan": 48, "zhu": 94, "xing": 65, "wang": 38}, "voice": "好器物不急着成形，它等火候。", "match": "你在星炉前站了三天三夜，手里的锤子只落下七次，每一次都刚好敲在材料最需要的位置。你不追求快，你追求的是当这件东西完成时，它能替使用者多活一次。这对应你答题时总选保留信物、寻找替代、把代价降到最低的选项。你身上有一种把耐心变成力量的稳重，异世界的材料在你手里不会浪费，它们会变成值得传下去的物件。你适合成为星炉铸师，在急躁的世界里，慢慢打出最可靠的那把钥匙。"}, {"name": "星轨占梦人", "era": "梦辰代", "role": "预知解读者", "tags": ["星引", "灵觉", "缥缈"], "v": {"ling": 82, "po": 40, "shou": 52, "ying": 58, "yan": 60, "zhu": 42, "xing": 95, "wang": 55}, "voice": "梦是星星写给大地的信，只是没人拆。", "match": "你躺在异世界最高的塔顶，闭着眼，却能看见明天集市上会有人摔碎一只蓝碗。你不去阻止，你只是把这件事记下来，等它发生后去捡起碎片，还给那个人。这对应你答题时总选预知、记忆交换、赌未来的选项。你身上有一种把飘渺当日常的从容，异世界的时间在你眼里不是直线，而是可以折叠的信纸。你适合成为星轨占梦人，在所有人只看脚下时，替他们望一眼远方。"}, {"name": "亡语摆渡人", "era": "灰岸纪", "role": "彼岸引渡者", "tags": ["亡语", "影契", "悲悯"], "v": {"ling": 65, "po": 42, "shou": 50, "ying": 70, "yan": 55, "zhu": 38, "xing": 48, "wang": 92}, "voice": "死去的人不重，重的是没说完的话。", "match": "你站在灰岸的渡口，手里没有桨，只有一盏快灭的灯。一个模糊的影子走过来，你听不清它说什么，却把灯举高了一点，让它看清你的脸。这对应你答题时总选替别人承受、把门留给同伴、让影子带走寿命的选项。你身上有一种把告别变成陪伴的温柔，异世界的死亡在你面前不是终点，而是另一条河。你适合成为亡语摆渡人，在所有人不敢靠近的地方，替逝者说最后一句「我在」。"}, {"name": "结界织补匠", "era": "锦界年", "role": "空间修补师", "tags": ["守序", "铸物", "细致"], "v": {"ling": 58, "po": 38, "shou": 86, "ying": 45, "yan": 52, "zhu": 82, "xing": 50, "wang": 40}, "voice": "裂开的地方，不一定要用新的布。", "match": "你在异世界的边界线上，手里拿着针和从旧结界上拆下来的线，一针一针把裂口缝回去。你不创造新东西，你只是让旧东西继续能用。这对应你答题时总选维持现状、控制代价、寻找第三条路的选项。你身上有一种把修补当创造的谦逊，异世界的空间在你手里不会越补越薄，反而会越缝越韧。你适合成为结界织补匠，在所有人都想推倒重来时，守住那些还值得继续存在的部分。"}, {"name": "焰心破咒者", "era": "焚誓代", "role": "禁咒破除者", "tags": ["破阵", "亡语", "决绝"], "v": {"ling": 48, "po": 88, "shou": 32, "ying": 60, "yan": 65, "zhu": 40, "xing": 42, "wang": 75}, "voice": "有些咒语，只能用命去解。", "match": "你在禁咒阵中央，脚下的符文开始发烫，你没有念反咒，而是把导师给你的那页纸点燃，让火苗顺着自己的手臂烧上去。你不怕代价，你只怕代价由别人来付。这对应你答题时总选立刻使用、冲回去救同伴、把门留给别人的选项。你身上有一种把决绝当责任的烈性，异世界的禁忌在你面前不是警告，而是待解的最后一道题。你适合成为焰心破咒者，在所有人后退时，用自己的燃烧换一条通路。"}, {"name": "镜湖观心者", "era": "镜水期", "role": "心灵映照师", "tags": ["灵觉", "言灵", "内省"], "v": {"ling": 85, "po": 40, "shou": 60, "ying": 52, "yan": 72, "zhu": 48, "xing": 62, "wang": 45}, "voice": "水面不会评价你，它只是让你看见。", "match": "你跪在镜湖边缘，掌心贴着水面，看见倒影里的自己正在做你不敢做的选择。你没有躲开，你只是问：你是我，还是我想成为的人？这对应你答题时总选感受、对话、用语言交换的选项。你身上有一种把自省变成勇气的清澈，异世界的幻象在你面前不会变成陷阱，而会成为一面镜子。你适合成为镜湖观心者，在所有人急着向外找答案时，替他们守住向内看的那条路。"}, {"name": "风蹄信使", "era": "长风年", "role": "跨域传讯者", "tags": ["星引", "破阵", "自由"], "v": {"ling": 60, "po": 70, "shou": 38, "ying": 48, "yan": 55, "zhu": 42, "xing": 88, "wang": 35}, "voice": "消息比人先到，希望就比绝望先到。", "match": "你骑着风蹄兽穿过异世界的裂谷，背上绑着三封不能落地的信，一封给北境，一封给南港，最后一封给你自己。你不问信里写什么，你只问多久能到。这对应你答题时总选行动、出发、把门留给同伴的选项。你身上有一种把距离当邀请的轻快，异世界的风在你耳边不是阻力，而是加速的号角。你适合成为风蹄信使，在所有人被困住时，替他们跑出那条没人敢走的路。"}, {"name": "骨钟守墓人", "era": "骨钟代", "role": "记忆保存者", "tags": ["亡语", "守序", "沉默"], "v": {"ling": 55, "po": 35, "shou": 82, "ying": 58, "yan": 42, "zhu": 60, "xing": 45, "wang": 85}, "voice": "墓碑不写名字，写的是他们最后想起的事。", "match": "你在异世界最老的墓园里，用骨钟敲出只有逝者能听见的节奏，然后蹲下来，在空白的墓碑上刻下他们最后想起的那个画面。你不评价，你只记录。这对应你答题时总选沉默、守护、让影子替自己承担的选项。你身上有一种把告别当承诺的厚重，异世界的遗忘在你面前不会得逞，因为你会替所有人记住。你适合成为骨钟守墓人，在时间冲刷一切时，守住那些不该消失的名字。"}, {"name": "金线缝合师", "era": "金缕纪", "role": "命运修补者", "tags": ["铸物", "言灵", "慈悲"], "v": {"ling": 65, "po": 45, "shou": 70, "ying": 50, "yan": 78, "zhu": 80, "xing": 55, "wang": 48}, "voice": "断掉的线，可以接，只是会多一个结。", "match": "你在异世界的命运工坊里，用金线把两个本该错过的人的生命线重新缝在一起，多出来的结你把它藏进自己的袖口。你不追求完美，你只追求他们能继续走下去。这对应你答题时总选调和、交换、让双方都能接受的选项。你身上有一种把缺憾当纹理的包容，异世界的裂痕在你手里不会变成伤口，而会成为故事的一部分。你适合成为金线缝合师，在所有人只看见断裂时，替他们找到还能连上的那一端。"}, {"name": "夜航引星者", "era": "夜航代", "role": "迷途领航员", "tags": ["星引", "影契", "孤独"], "v": {"ling": 72, "po": 55, "shou": 48, "ying": 75, "yan": 52, "zhu": 40, "xing": 90, "wang": 50}, "voice": "最暗的海上，星星不是光，是方向。", "match": "你站在异世界夜航船的船头，手里没有罗盘，只有一颗从天上摘下来又挂回去的星。你闭着眼也能感到港口在哪个方向，因为你在黑暗里待得够久。这对应你答题时总选直觉、跟随影子、赌未来的选项。你身上有一种把孤独当导航的清醒，异世界的黑夜在你面前不会迷路，因为你就是那条路。你适合成为夜航引星者，在所有人看不见岸时，替他们指出哪一颗星值得跟。"}, {"name": "铁律审判官", "era": "铁律代", "role": "规则执行者", "tags": ["守序", "破阵", "冷峻"], "v": {"ling": 50, "po": 78, "shou": 92, "ying": 38, "yan": 65, "zhu": 55, "xing": 42, "wang": 45}, "voice": "规则不是用来喜欢的，是用来守住的。", "match": "你坐在异世界审判庭最高的位子上，面前是你最好的朋友，他确实犯了法，也确实有苦衷。你敲下法槌，声音没有抖。这对应你答题时总选守序、拒绝、维持规则的选项。你身上有一种把公正当责任的冷峻，异世界的灰色地带在你面前不会变成借口，因为你会替所有人守住那条线。你适合成为铁律审判官，在人情与规则拉扯时，做出那个最难却最必要的决定。"}, {"name": "幻花培育者", "era": "花眠期", "role": "异植调香师", "tags": ["灵觉", "铸物", "温柔"], "v": {"ling": 80, "po": 38, "shou": 62, "ying": 45, "yan": 58, "zhu": 78, "xing": 52, "wang": 40}, "voice": "花不急着开，它先问你为什么来。", "match": "你在异世界的温室里，对着一朵三百年没开过的幻花说话，不说命令，只说你今天看见的云。第七天，花瓣动了。这对应你答题时总选感受、培育、用温柔交换的选项。你身上有一种把等待当陪伴的耐心，异世界的奇迹在你手里不会变成炫耀，而会成为一封信。你适合成为幻花培育者，在所有人追求结果时，替他们守住那个慢慢来的过程。"}, {"name": "无面归乡人", "era": "归墟年", "role": "界间漂泊者", "tags": ["影契", "亡语", "归途"], "v": {"ling": 60, "po": 58, "shou": 45, "ying": 88, "yan": 50, "zhu": 42, "xing": 68, "wang": 78}, "voice": "没有脸的人，最认得回家的路。", "match": "你走在异世界与现实的夹缝里，脸上没有五官，却能感到每一扇窗后面的灯在叫你。你不属于任何一边，所以你能同时看见两边。这对应你答题时总选留在异世界、把门留给别人、用记忆换未来的选项。你身上有一种把漂泊当归宿的坦然，异世界的边界在你脚下不是墙，而是可以穿过的雾。你适合成为无面归乡人，在所有人急着选一边时，替他们记住两边都值得回去。"}];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+function buildExplain(scores,fig){
+  var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+  var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+  var head='你的八维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出，'
+    +'「'+d3.name+'」'+scores[d3.key]+' 分紧随其后。在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+    +'第二步才用'+d2.name+'去收尾。';
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+    +'<h2 class="res-name">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">八 维 倾 向</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">异世界天赋</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill');
+  fills.forEach(function(el){el.style.width='0%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var r=findMatch(scores);
+  var res=document.getElementById('screen-result');
+  res.innerHTML=buildResultHTML(r.fig,r.pct,scores);
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
