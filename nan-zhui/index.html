@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#f5f6fa" />
+<title>你在异性眼里有多难追?</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#f5f6fa;
+    --card:#cccccc;
+    --accent:#d94f5c;
+    --accent-dim:#a88184;
+    --text:#2c3e50;
+    --text-dim:#66707b;
+    --line:#e2e6ee;
+    --title-font:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #d94f5c1c, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #d94f5c0e, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #d94f5c99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#00000014;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    text-shadow:0 1px 10px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#d94f5c26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#f5f6fae6 0%,#f5f6fa8c 60%,#f5f6fa59 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#d94f5c14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#00000014;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#d94f5c14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#d94f5c14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">心动门槛</p>
+      <h1 class="cover-title">你在异性眼里有多难追?</h1>
+      <p class="cover-sub">测一测你留给异性的<br>心动通关难度</p>
+      <div class="cover-quote">不是不想爱，只是我的心动信号，不是谁都能接收到。</div>
+      <div class="cover-meta"><span>共 6 题</span><i></i><span>约 1 分钟</span></div>
+      <button class="btn-primary" id="startBtn">开测</button>
+      <p class="cover-note">仅供娱乐，别太当真哦</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen"></section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #d94f5c99;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "si", "name": "思维敏捷"}, {"key": "qing", "name": "情感热度"}, {"key": "jie", "name": "边界意识"}, {"key": "yuan", "name": "缘分期待"}, {"key": "zhi", "name": "主动意愿"}, {"key": "gan", "name": "感知敏锐"}, {"key": "li", "name": "独立倾向"}, {"key": "xu", "name": "需求程度"}];
+var QUESTIONS=[{"text": "周五晚上十一点，crush突然发来“睡了吗？想你了”，你看到后第一反应是？", "options": [{"t": "秒回“还没~怎么啦？”然后抱着手机等下文", "s": {"qing": 3, "zhi": 3, "xu": 3}}, {"t": "先晾五分钟，想想他是不是群发的", "s": {"jie": 3, "si": 2, "gan": 2}}, {"t": "回个“准备睡了”然后继续刷剧", "s": {"li": 3, "jie": 2, "qing": 1}}]}, {"text": "第一次单独吃饭，他选了家网红火锅店要排队两小时，你会？", "options": [{"t": "没关系呀，排队时正好可以多聊聊天~", "s": {"qing": 3, "yuan": 3, "zhi": 2}}, {"t": "提议换一家，并直接带他去你常去的店", "s": {"zhi": 3, "si": 2, "li": 2}}, {"t": "心里减分，觉得他规划能力不太行", "s": {"jie": 3, "gan": 2, "li": 2}}]}, {"text": "聊天时他发来一句土味情话：“你知道我的缺点是什么吗？缺点你。”你内心OS是？", "options": [{"t": "哈哈哈好土，但我居然有点心动", "s": {"qing": 3, "yuan": 2, "gan": 2}}, {"t": "尬到脚趾抠地，礼貌回个表情包", "s": {"jie": 3, "si": 2, "li": 2}}, {"t": "直接回“那你缺点还挺多的”", "s": {"si": 3, "zhi": 2, "jie": 2}}]}, {"text": "同时有两个还不错的人在追你，一个热情直接，一个慢热但细心，你更倾向？", "options": [{"t": "选热情的，我喜欢被明确偏爱的感觉", "s": {"qing": 3, "xu": 3, "yuan": 2}}, {"t": "选细心的，慢慢来比较有安全感", "s": {"jie": 3, "yuan": 2, "gan": 2}}, {"t": "都不选，先搞事业，爱情随缘", "s": {"li": 3, "zhi": 2, "qing": 1}}]}, {"text": "约会时他全程玩手机回工作消息，你会怎么想？", "options": [{"t": "理解，但会提醒他“先忙完再约我”", "s": {"jie": 3, "zhi": 2, "si": 2}}, {"t": "有点失落，觉得他没那么在意这次约会", "s": {"qing": 3, "gan": 3, "xu": 2}}, {"t": "正好，我也回一下自己的消息", "s": {"li": 3, "jie": 2, "si": 1}}]}, {"text": "认识两周他就说“我好像喜欢上你了”，你的第一反应是？", "options": [{"t": "开心但警惕，想再观察观察", "s": {"jie": 3, "gan": 2, "yuan": 2}}, {"t": "有点上头，想立刻确定关系", "s": {"qing": 3, "zhi": 3, "xu": 3}}, {"t": "太快了吧，直接回复“你还不了解我”", "s": {"li": 3, "si": 2, "jie": 2}}]}];
+var FIGURES=[{"name": "高冷冰川", "era": "高冷级", "role": "心动守门人", "tags": ["慢热", "边界感强", "理性"], "v": {"si": 82, "qing": 30, "jie": 90, "yuan": 45, "zhi": 40, "gan": 55, "li": 85, "xu": 25}, "voice": "想追我？先排队拿号，再等冰川融化。", "match": "你像一座漂浮在社交海域的冰川，露出水面的只是礼貌与客气，真正的庞大与深邃藏在海底。crush发来暧昧消息，你会先分析他是不是群发；约会时对方玩手机，你不会哭闹，只会默默在心里扣分。你给出的每个信号都经过计算，不是不爱，而是太清楚自己要什么。你享受独处，也期待对的人，但绝不会因为寂寞而降低门槛。你的难追，不是故作姿态，而是你的世界本就自给自足，别人需要足够耐心和真诚，才能拿到那张稀有的通行证。"}, {"name": "恋爱脑绝缘", "era": "绝缘级", "role": "理智掌舵人", "tags": ["清醒", "事业心", "不将就"], "v": {"si": 88, "qing": 28, "jie": 78, "yuan": 35, "zhi": 65, "gan": 48, "li": 92, "xu": 20}, "voice": "恋爱可以谈，但别耽误我搞钱和睡觉。", "match": "你像一台精密运转的仪器，感情只是生活的一个模块，绝不是核心程序。对方发土味情话，你第一反应是脚趾抠地；同时被两个人追，你甚至觉得有点麻烦。你的时间表排得很满，工作、健身、朋友、独处，每一项都有固定配额。你并非排斥爱情，只是无法接受它打乱你的节奏。那些“秒回”“查岗”“情绪价值”的戏码，在你看来既低效又消耗。能走进你世界的人，必须先是独立完整的个体，然后才是让你愿意匀出时间的例外。"}, {"name": "慢热暖炉", "era": "慢热级", "role": "温水煮青蛙", "tags": ["谨慎", "长情", "观察者"], "v": {"si": 62, "qing": 55, "jie": 70, "yuan": 75, "zhi": 45, "gan": 68, "li": 55, "xu": 50}, "voice": "别急，让我先确认你是不是那个对的人。", "match": "你像一只谨慎的猫，不会轻易蹭任何人的裤脚。crush半夜发“想你了”，你会先晾五分钟，想想他是不是群发；第一次约会，你会默默评估他的规划能力和谈吐细节。你渴望温暖，但更害怕烫伤。你的心动信号释放得很慢，像温水煮青蛙，等对方察觉时，你其实已经观察了很久。你不排斥主动，但每一步都要踩在确认安全的地砖上。对你来说，最难的不是开始，而是信任——一旦信任，你会比谁都长情。"}, {"name": "直球甜心", "era": "易追级", "role": "心动直球手", "tags": ["热情", "真诚", "行动派"], "v": {"si": 60, "qing": 85, "jie": 35, "yuan": 80, "zhi": 90, "gan": 70, "li": 40, "xu": 75}, "voice": "喜欢就上啊，犹豫就会败北！", "match": "你像一颗投入水中的泡腾片，瞬间就能让整杯水沸腾。对方问“明天有空吗”，你几乎秒回“有有有”；约会时他选错餐厅，你哈哈一笑说“正好我想换口味”。你不喜欢猜来猜去，觉得互相试探是在浪费生命。你的难追程度几乎为零，因为你的心动信号永远满格发射。你相信真诚是最高效的沟通，也愿意先迈出那一步。但请记得，直球虽然可爱，也要留一点时间给自己，看看对方是否值得你这份毫不掩饰的热烈。"}, {"name": "欲擒故纵", "era": "博弈级", "role": "暧昧操盘手", "tags": ["策略", "敏锐", "节奏感"], "v": {"si": 85, "qing": 65, "jie": 60, "yuan": 55, "zhi": 75, "gan": 82, "li": 50, "xu": 45}, "voice": "我不是难追，我只是在筛选值得的人。", "match": "你像一位深谙心理学的棋手，每一步回应都带着观察与试探。crush发来暧昧消息，你不会立刻扑上去，而是抛出一个有趣的梗，看对方接不接得住；对方说“喜欢你”，你会笑着回“你还不了解我”，把节奏牢牢握在自己手里。你享受暧昧期的推拉，因为那是你筛选诚意的方式。你并不冷漠，只是太擅长在热情中保持一丝清醒。能追到你的人，一定是在你的节奏里依然不退场、且能与你共舞的人。"}, {"name": "社交蝴蝶", "era": "游刃级", "role": "魅力发散器", "tags": ["外向", "亲和", "选择多"], "v": {"si": 75, "qing": 70, "jie": 45, "yuan": 65, "zhi": 80, "gan": 78, "li": 60, "xu": 55}, "voice": "追我的人很多，但懂我的没几个。", "match": "你像一只在花丛中自在穿梭的蝴蝶，和谁都能聊得开心，但不会轻易停留在哪一朵花上。你的微信列表里总有新消息，约会邀约也从不间断。你享受被喜欢的感觉，但并不会因此就随便交付真心。你能在热闹中保持一份冷静，知道哪些是客套，哪些是真心。对你来说，难追的不是门槛高，而是选择太多，反而让你更谨慎。你等待的是一个能让你心甘情愿收起翅膀的人，而不是另一场无聊的社交游戏。"}, {"name": "傲娇刺猬", "era": "傲娇级", "role": "口是心非者", "tags": ["嘴硬", "心软", "防御高"], "v": {"si": 70, "qing": 60, "jie": 80, "yuan": 50, "zhi": 35, "gan": 72, "li": 65, "xu": 40}, "voice": "哼，才不是因为你才回消息的呢。", "match": "你像一只竖起刺的刺猬，嘴上说着“别烦我”，心里却偷偷希望对方再多说一句。crush发来土味情话，你回“好土”，但嘴角已经翘起来；约会时他迟到，你表面说“没事”，心里已经演完一部被冷落的大戏。你的难追在于，你的真实想法和说出口的话常常相反。你需要一个能读懂你反话、看穿你逞强的人。一旦有人愿意耐心拨开你的刺，你会发现你比谁都柔软，也比谁都忠诚。"}, {"name": "佛系随缘", "era": "随缘级", "role": "静待花开者", "tags": ["平和", "不争", "内心稳"], "v": {"si": 55, "qing": 45, "jie": 65, "yuan": 85, "zhi": 30, "gan": 50, "li": 70, "xu": 35}, "voice": "该来的总会来，不急，我先把日子过好。", "match": "你像一条缓缓流淌的溪流，不急着汇入大海，也不羡慕瀑布的壮阔。别人在暧昧里推拉，你只关心今天的晚饭和周末的展览。crush问“明天有空吗”，你如果刚好没事就说“有”，如果累了就回“改天吧”。你不会为了脱单而刻意改变自己的节奏，也懒得去猜对方话里有几层意思。你的难追，是因为你根本不在追与被追的游戏里。你相信缘分自有安排，而你要做的，只是把当下的每一天过舒服。"}, {"name": "细节控", "era": "审慎级", "role": "观察入微者", "tags": ["敏感", "重细节", "高标准"], "v": {"si": 80, "qing": 58, "jie": 75, "yuan": 60, "zhi": 50, "gan": 88, "li": 55, "xu": 48}, "voice": "他刚才那句话，到底是什么意思？", "match": "你像一台高精度雷达，能捕捉到对方语气里0.1秒的迟疑。约会时他帮你拉椅子，你会加分；但他回复消息慢了三分钟，你也会在心里画个问号。你不是作，只是太看重那些微小的信号，因为它们往往暴露一个人最真实的样子。你的难追在于，你考察的从来不是对方说了什么，而是那些没说出口的细节。能通过你考核的人，必须在无数个不经意的瞬间，都保持一致的真诚与用心。"}, {"name": "独立岛屿", "era": "自足级", "role": "独美掌门人", "tags": ["自洽", "爱自由", "不依赖"], "v": {"si": 72, "qing": 38, "jie": 85, "yuan": 55, "zhi": 45, "gan": 52, "li": 95, "xu": 18}, "voice": "我一个人过得挺好，除非两个人更好。", "match": "你像一座设施完备的独立岛屿，有自己的生态、气候和节奏。恋爱对你来说是锦上添花，绝不是雪中送炭。你享受一个人吃饭、旅行、看电影，甚至觉得不用迁就别人的感觉太爽了。如果有人想进入你的世界，必须证明他能让这座岛屿变得更丰富，而不是带来风暴。你的难追，是因为你根本不缺一个“男朋友”或“女朋友”的身份，你缺的只是一个真正同频、能让你甘愿分享领土的人。"}, {"name": "热情火花", "era": "易燃级", "role": "瞬间点燃者", "tags": ["冲动", "浪漫", "体验派"], "v": {"si": 50, "qing": 92, "jie": 30, "yuan": 70, "zhi": 88, "gan": 65, "li": 35, "xu": 80}, "voice": "感觉对了就冲，想那么多干嘛！", "match": "你像一簇跳动的火焰，遇到一点火星就能熊熊燃烧。对方一个眼神、一句暧昧，就能让你脑补出整部偶像剧。crush半夜说“想你了”，你会立刻回复“我也是”；认识两周对方表白，你可能会说“那就在一起试试呗”。你的难追程度很低，因为你太容易被真诚和热情打动。你相信感觉，也愿意为心动买单。但热情来得快，有时去得也快，学会在燃烧时留一点氧气，才能让火花变成持久的暖光。"}, {"name": "理智天平", "era": "权衡级", "role": "得失计算师", "tags": ["客观", "权衡", "不冲动"], "v": {"si": 85, "qing": 40, "jie": 72, "yuan": 50, "zhi": 55, "gan": 60, "li": 75, "xu": 30}, "voice": "喜欢不能当饭吃，合适才最重要。", "match": "你像一架精准的天平，每投入一份感情前都要先称一称对方的诚意、条件和未来可能性。crush发来土味情话，你会分析他是真心还是群发；同时两个人追你，你会列出优缺点对比表。你不排斥爱情，但拒绝被荷尔蒙牵着走。你的难追在于，你太清楚自己要什么，也太明白哪些是虚的。能让你放下天平的人，必须用持续的行动证明，他值得你冒一次不理性的险。"}, {"name": "温柔海绵", "era": "包容级", "role": "情绪吸收者", "tags": ["体贴", "善解人意", "易心软"], "v": {"si": 58, "qing": 78, "jie": 40, "yuan": 82, "zhi": 60, "gan": 85, "li": 38, "xu": 70}, "voice": "他是不是有苦衷？我再给他一次机会吧。", "match": "你像一块柔软的海绵，能吸收对方的情绪，也容易把别人的感受放在自己前面。约会时他玩手机，你会想“他可能真的很忙”；他迟到，你会担心“是不是路上出事了”。你的难追程度不高，因为你太容易共情，也太容易心软。你总是先看到对方的难处，却常常忽略自己的委屈。但请记得，温柔是珍贵的礼物，不是廉价的赠品。真正值得的人，不会让你一直吸收负能量，而是会和你一起制造快乐。"}, {"name": "神秘谜题", "era": "迷雾级", "role": "捉摸不定者", "tags": ["内敛", "神秘", "慢释放"], "v": {"si": 78, "qing": 50, "jie": 82, "yuan": 48, "zhi": 42, "gan": 62, "li": 70, "xu": 38}, "voice": "你看到的我，只是我想让你看到的那面。", "match": "你像一本封面低调、内容深邃的书，不轻易让人翻开。你话不多，但每句都经过斟酌；你朋友圈很少发，但偶尔一张照片就让人浮想联翩。crush会觉得你礼貌但疏离，热情但难懂。你的难追在于，你释放的信息太少，对方需要极大的耐心和观察力，才能拼凑出完整的你。你不是故意玩神秘，只是觉得懂的人自然懂。一旦有人愿意慢慢读你，你会发现你藏起来的章节，比封面精彩一百倍。"}, {"name": "阳光捕手", "era": "明朗级", "role": "正能量源泉", "tags": ["乐观", "直接", "好相处"], "v": {"si": 65, "qing": 80, "jie": 38, "yuan": 75, "zhi": 78, "gan": 58, "li": 48, "xu": 65}, "voice": "喜欢就表达，不开心就说，多简单！", "match": "你像一束明亮的阳光，走到哪里都能照亮周围的人。你不会在暧昧里绕弯子，喜欢就主动约，不开心就直接说。crush问“明天有空吗”，你会开心地回“有啊，去哪？”；对方发土味情话，你会笑着回一个更土的。你的难追程度很低，因为你的心意几乎写在脸上。你相信简单直接是最高效的沟通，也愿意先付出真心。但记得，阳光也要偶尔歇一歇，留给懂得珍惜的人。"}, {"name": "谨慎蜗牛", "era": "慎行级", "role": "安全第一者", "tags": ["胆小", "慢节奏", "怕受伤"], "v": {"si": 60, "qing": 48, "jie": 78, "yuan": 58, "zhi": 25, "gan": 68, "li": 62, "xu": 42}, "voice": "万一他只是玩玩呢？我再观察观察吧。", "match": "你像一只背着壳的蜗牛，每向前一步都要先确认地面是否安全。crush发来暧昧消息，你会反复读三遍，分析每个标点符号；对方约你，你会先问清楚时间地点人物，甚至悄悄查一下他的社交动态。你的难追在于，你太害怕受伤，所以把节奏放得很慢很慢。你不是不想恋爱，只是需要足够多的证据证明对方靠谱。一旦你确认安全，你会从壳里探出头，展现出意想不到的柔软与坚定。"}, {"name": "自由飞鸟", "era": "自由级", "role": "不被定义者", "tags": ["随性", "爱冒险", "反套路"], "v": {"si": 68, "qing": 55, "jie": 68, "yuan": 72, "zhi": 58, "gan": 55, "li": 88, "xu": 28}, "voice": "别用追不追来定义我，我只想飞向想去的地方。", "match": "你像一只不设航线的飞鸟，今天想往东，明天可能就改了主意。你不会因为对方热情就答应，也不会因为对方冷淡就焦虑。crush问“明天有空吗”，你可能回“看心情”；对方表白，你会说“我还没想好”。你的难追，是因为你根本不在别人设定的赛道里。你追求的是自由和体验，而不是一段确定的关系标签。能与你并肩的人，必须懂得给你空间，并且自己也有翅膀。"}, {"name": "温暖港湾", "era": "治愈级", "role": "情感避风港", "tags": ["包容", "稳定", "重承诺"], "v": {"si": 62, "qing": 75, "jie": 55, "yuan": 88, "zhi": 52, "gan": 80, "li": 45, "xu": 60}, "voice": "我想要的，是一个可以互相依靠的人。", "match": "你像一处宁静的港湾，不追求刺激的浪潮，只希望有船愿意停靠。你对待感情认真而传统，觉得暧昧期的推拉不如一句确定的“我喜欢你”。crush发来模糊的信号，你会直接问“你是什么意思”；同时两个人追你，你会考虑谁更靠谱、更长久。你的难追程度适中，因为你不排斥开始，但非常看重承诺和稳定。你愿意付出温柔和陪伴，也期待对方给你同样的笃定。能走进你港湾的人，一定是准备好了和你一起看细水长流的人。"}];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+function buildExplain(scores,fig){
+  var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+  var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+  var head='你的八维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出，'
+    +'「'+d3.name+'」'+scores[d3.key]+' 分紧随其后。在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+    +'第二步才用'+d2.name+'去收尾。';
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+    +'<h2 class="res-name">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">八 维 倾 向</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">心动门槛</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill');
+  fills.forEach(function(el){el.style.width='0%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var r=findMatch(scores);
+  var res=document.getElementById('screen-result');
+  res.innerHTML=buildResultHTML(r.fig,r.pct,scores);
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
