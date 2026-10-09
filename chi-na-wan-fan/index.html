@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#f5f6fa" />
+<title>你天生该吃哪碗饭</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#f5f6fa;
+    --card:#cccccc;
+    --accent:#2c3e7a;
+    --accent-dim:#5a6ea0;
+    --text:#2a3040;
+    --text-dim:#66707b;
+    --line:#2c3e7a29;
+    --title-font:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #2c3e7a1c, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #2c3e7a0e, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #2c3e7a99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#00000014;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    text-shadow:0 1px 10px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#2c3e7a26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#f5f6fae6 0%,#f5f6fa8c 60%,#f5f6fa59 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#2c3e7a14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#00000014;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#2c3e7a14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#2c3e7a14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">天生饭碗</p>
+      <h1 class="cover-title">你天生该吃哪碗饭</h1>
+      <p class="cover-sub">一分钟自测，凭直觉选<br>测测你的天生饭碗</p>
+      <div class="cover-quote">每个人生来都带着一只碗，只是有人还没找到自己的筷子。</div>
+      <div class="cover-meta"><span>共 6 题</span><i></i><span>约 1 分钟</span></div>
+      <button class="btn-primary" id="startBtn">开吃</button>
+      <p class="cover-note">看看你的潜力</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen"></section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #2c3e7a99;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "guan", "name": "统筹格局"}, {"key": "zhi", "name": "执行落地"}, {"key": "she", "name": "社交共鸣"}, {"key": "ji", "name": "技术专精"}, {"key": "chuang", "name": "创意破局"}, {"key": "wen", "name": "稳定守成"}, {"key": "ling", "name": "灵活应变"}, {"key": "ren", "name": "人文关怀"}];
+var QUESTIONS=[{"text": "项目组突然被砍掉一半预算，你会最先做什么？", "options": [{"t": "重新拆解目标，优先保住核心产出", "s": {"guan": 3, "zhi": 2, "wen": 1}}, {"t": "找关键成员聊一圈，稳住大家情绪", "s": {"she": 3, "ren": 2, "ling": 1}}, {"t": "快速试几个低成本替代方案", "s": {"chuang": 3, "ji": 2, "ling": 1}}]}, {"text": "朋友拉你合伙开一家小酒馆，你最想负责哪块？", "options": [{"t": "定方向、找钱、管大局", "s": {"guan": 3, "she": 1, "wen": 1}}, {"t": "调酒、研发新口味，死磕品质", "s": {"ji": 3, "chuang": 2, "zhi": 1}}, {"t": "招呼客人、做活动、搞气氛", "s": {"she": 3, "ren": 2, "ling": 1}}]}, {"text": "你独自负责一个长期项目，最享受哪个阶段？", "options": [{"t": "从零画蓝图，想象最终模样", "s": {"chuang": 3, "guan": 2, "ling": 1}}, {"t": "按计划推进，每天打勾完成", "s": {"zhi": 3, "wen": 2, "ji": 1}}, {"t": "遇到意外时，现场想办法救火", "s": {"ling": 3, "ji": 1, "she": 1}}]}, {"text": "同事把烂摊子甩给你，你最自然的反应是？", "options": [{"t": "先接下来，再理清责任和流程", "s": {"zhi": 3, "wen": 2, "guan": 1}}, {"t": "直接沟通，把边界和需求说清楚", "s": {"she": 3, "ling": 2, "ren": 1}}, {"t": "当成挑战，用新方法把它盘活", "s": {"chuang": 3, "ji": 2, "guan": 1}}]}, {"text": "如果明天可以不上班，你最想怎么过？", "options": [{"t": "约三五好友，边吃边聊到深夜", "s": {"she": 3, "ren": 2, "ling": 1}}, {"t": "窝在家里，把一直想学的东西啃完", "s": {"ji": 3, "wen": 2, "zhi": 1}}, {"t": "去陌生街区乱逛，找新鲜灵感", "s": {"chuang": 3, "ling": 2, "guan": 1}}]}, {"text": "你更希望别人怎么评价你的工作？", "options": [{"t": "靠谱，交给他就一定落地", "s": {"zhi": 3, "wen": 2, "ren": 1}}, {"t": "有想法，总能带来新东西", "s": {"chuang": 3, "ji": 2, "guan": 1}}, {"t": "会带人，跟着他干有方向", "s": {"guan": 3, "she": 2, "ling": 1}}]}];
+var FIGURES=[{"name": "掌舵者", "era": "管理纪元", "role": "团队领航", "tags": ["格局", "决断", "统筹"], "v": {"guan": 95, "zhi": 70, "she": 72, "ji": 45, "chuang": 60, "wen": 55, "ling": 65, "ren": 58}, "voice": "方向对了，再远的路都不怕。", "match": "你端起碗，先看的是桌子的方向。在测试里，你总在预算被砍、合伙开店、长期项目这些题上选择定方向、管大局、带人往前。你天生适合做那个站在船头看航线的人，而不是只盯着桨。别人慌的时候，你习惯先问目标还在不在，再拆资源、排优先级。你的饭碗里装着判断力和担当，适合管理、创业、项目统筹这类需要扛结果的位置。但别把所有事都揽在自己身上，学会把桨交给擅长划船的人。你的天生饭碗，是掌舵，不是划桨。"}, {"name": "铁匠", "era": "执行纪元", "role": "落地工匠", "tags": ["执行", "稳定", "可靠"], "v": {"guan": 55, "zhi": 96, "she": 45, "ji": 72, "chuang": 40, "wen": 78, "ling": 50, "ren": 55}, "voice": "说再多，不如先做出来。", "match": "你的碗里盛的是实打实的进度条。在测试里，预算被砍你先保核心产出，朋友开店你想死磕品质，同事甩锅你理清流程再动手。你不爱画大饼，更信每天打勾的踏实。你天生适合吃执行这碗饭，技术、运营、生产、品控，凡是需要把想法变成实物的地方，都是你的主场。你可靠，交给你的事基本不会烂尾。但也要小心，别因为太专注低头干活，错过了抬头看路的机会。你的天生饭碗，是把事做成，不是把话说满。"}, {"name": "交际花", "era": "社交纪元", "role": "关系枢纽", "tags": ["社交", "共情", "气氛"], "v": {"guan": 62, "zhi": 50, "she": 97, "ji": 35, "chuang": 58, "wen": 45, "ling": 75, "ren": 82}, "voice": "人对了，事就顺了。", "match": "你端起碗，先看的是桌上的人。测试里，团队意见不合你先找关键成员聊一圈，朋友开店你想招呼客人搞气氛，不上班你想约好友聊到深夜。你天生适合吃社交这碗饭，销售、公关、运营、社群，凡是需要把人聚起来、把话说到心坎里的地方，你都能如鱼得水。你不仅能热场，还能在矛盾里找到最大公约数。但别为了照顾所有人，把自己的需求咽下去。你的天生饭碗，是让人舒服，不是让自己委屈。"}, {"name": "极客", "era": "技术纪元", "role": "深度钻研", "tags": ["技术", "专精", "沉浸"], "v": {"guan": 40, "zhi": 75, "she": 35, "ji": 96, "chuang": 65, "wen": 60, "ling": 48, "ren": 38}, "voice": "把一件事做到极致，就够了。", "match": "你的碗里装的是别人看不懂的代码、图纸或配方。测试里，朋友开店你想调酒研发口味，不上班你想把一直想学的东西啃完，同事甩锅你当成挑战用新方法盘活。你不怕枯燥，反而在深度里找到快感。你天生适合吃技术这碗饭，编程、设计、研究、手工艺，凡是需要长时间专注打磨的领域，你都能靠硬实力站稳。你不太爱应酬，但你的作品会替你说话。别逼自己变成社交达人，你的价值在专业深度。你的天生饭碗，是专精，不是广度。"}, {"name": "造梦师", "era": "创意纪元", "role": "灵感破局", "tags": ["创意", "破局", "想象"], "v": {"guan": 58, "zhi": 45, "she": 62, "ji": 60, "chuang": 97, "wen": 35, "ling": 80, "ren": 55}, "voice": "换个角度，世界就变了。", "match": "你的碗里盛着别人没想到的点子。测试里，预算被砍你快速试低成本替代方案，长期项目你享受从零画蓝图，不上班你去陌生街区找灵感。你天生适合吃创意这碗饭，策划、文案、设计、产品创新，凡是需要打破常规、从无到有的地方，你都能发光。你不喜欢重复，讨厌被流程捆死，但你的灵光一闪常常能救活一个项目。你需要的是能容忍你试错的土壤。别因为一时没灵感就否定自己，你的节奏本来就是波浪形。你的天生饭碗，是破局，不是守成。"}, {"name": "守灯人", "era": "稳定纪元", "role": "长期主义", "tags": ["稳定", "守成", "耐心"], "v": {"guan": 50, "zhi": 78, "she": 48, "ji": 65, "chuang": 35, "wen": 95, "ling": 40, "ren": 60}, "voice": "慢慢来，比较快。", "match": "你的碗里装的是日复一日的耐心。测试里，你倾向按计划推进每天打勾，希望别人评价你靠谱，遇到烂摊子先接下来理清责任。你不追风口，更信长期积累。你天生适合吃稳定这碗饭，财务、行政、教育、运维，凡是需要细水长流、不出大错的地方，你都是定海神针。你可能不是最亮眼的那个，但团队少了你，地基就不稳。别被别人的快节奏带焦虑，你的优势在持续和可靠。你的天生饭碗，是守得住，不是跑得快。"}, {"name": "变色龙", "era": "应变纪元", "role": "灵活救火", "tags": ["灵活", "应变", "适应"], "v": {"guan": 60, "zhi": 62, "she": 70, "ji": 55, "chuang": 72, "wen": 42, "ling": 96, "ren": 65}, "voice": "哪里需要，我就去哪里。", "match": "你的碗没有固定形状，装什么都能适应。测试里，预算被砍你找成员稳情绪，长期项目你享受现场救火，同事甩锅你直接沟通说清边界。你天生适合吃应变这碗饭，咨询、商务、运营、危机公关，凡是变化快、需要随时切换角色的地方，你都能活得很好。你不怕乱，反而在混乱里找到秩序。但你也要小心，别因为太能适应，忘了自己真正想去哪。你的天生饭碗，是灵活，不是没有方向。"}, {"name": "暖心炉", "era": "关怀纪元", "role": "人文支持", "tags": ["关怀", "共情", "治愈"], "v": {"guan": 48, "zhi": 58, "she": 80, "ji": 42, "chuang": 55, "wen": 68, "ling": 62, "ren": 96}, "voice": "你还好吗？我在这儿。", "match": "你的碗里盛的是温度。测试里，预算被砍你先稳大家情绪，朋友开店你想招呼客人，不上班你想和好友聊到深夜。你天生适合吃关怀这碗饭，心理咨询、教育、医疗、HR、客服，凡是需要理解人、支持人、治愈人的地方，你都是那盏暖灯。你敏感，能接住别人的情绪，但这也意味着你容易累。记得先把自己的碗装满，再去盛给别人。你的天生饭碗，是温暖，不是燃烧自己。"}, {"name": "独行侠", "era": "专精纪元", "role": "独立作业", "tags": ["独立", "专精", "自驱"], "v": {"guan": 45, "zhi": 82, "she": 30, "ji": 88, "chuang": 58, "wen": 65, "ling": 52, "ren": 35}, "voice": "我一个人，也能搞定。", "match": "你的碗里装的是自给自足的底气。测试里，你倾向自己啃完想学的东西，按计划推进，用新方法盘活烂摊子。你不排斥合作，但更信自己亲手做出来的东西。你天生适合吃独立作业这碗饭，自由职业、研究、写作、手艺人，凡是能自己掌控节奏的领域，你都能活得自在。你不需要太多掌声，完成本身就能给你满足。但别把门关太死，偶尔让人进来，也许会有意外收获。你的天生饭碗，是独立，不是孤立。"}, {"name": "军师", "era": "策略纪元", "role": "幕后谋划", "tags": ["策略", "分析", "谋划"], "v": {"guan": 88, "zhi": 68, "she": 55, "ji": 70, "chuang": 75, "wen": 50, "ling": 78, "ren": 45}, "voice": "让我先想清楚，再动手。", "match": "你的碗里装的是推演和布局。测试里，预算被砍你重新拆解目标，长期项目你从零画蓝图，同事甩锅你理清责任流程。你不急着冲，习惯先看三步。你天生适合吃策略这碗饭，咨询、分析、战略、投资，凡是需要动脑比动手多的地方，你都能靠脑子吃饭。你擅长在复杂局面里找到关键变量，但有时想太多会错过行动窗口。相信你的判断，也允许自己边做边调。你的天生饭碗，是谋略，不是蛮力。"}, {"name": "开心果", "era": "气氛纪元", "role": "快乐传递", "tags": ["幽默", "乐观", "气氛"], "v": {"guan": 42, "zhi": 50, "she": 85, "ji": 38, "chuang": 68, "wen": 40, "ling": 72, "ren": 78}, "voice": "笑一笑，没什么大不了。", "match": "你的碗里装的是让人放松的魔法。测试里，你倾向约好友聊到深夜，希望别人觉得你有想法，遇到烂摊子也能用幽默化解。你天生适合吃快乐这碗饭，喜剧、主持、活动策划、内容创作，凡是需要传递情绪价值的地方，你都是那个点亮全场的人。你看起来没心没肺，其实很会察言观色，知道什么时候该逗谁笑。但别总用笑掩饰自己的低落，你也可以被安慰。你的天生饭碗，是快乐，不是永远开心。"}, {"name": "苦行僧", "era": "深耕纪元", "role": "耐性打磨", "tags": ["耐性", "深耕", "自律"], "v": {"guan": 52, "zhi": 85, "she": 38, "ji": 80, "chuang": 45, "wen": 82, "ling": 42, "ren": 50}, "voice": "慢慢磨，总会亮。", "match": "你的碗里装的是日复一日的自律。测试里，你倾向按计划推进，把想学的东西啃完，希望别人评价你靠谱。你不怕慢，怕的是停。你天生适合吃苦行这碗饭，学术、技艺、运动、匠人，凡是需要长期投入才能看到回报的领域，你都能靠耐力熬出头。你不追求速成，相信时间会奖励坚持的人。但也要允许自己偶尔休息，弦绷太紧会断。你的天生饭碗，是深耕，不是苦熬。"}, {"name": "连接器", "era": "协作纪元", "role": "资源整合", "tags": ["协作", "整合", "沟通"], "v": {"guan": 78, "zhi": 62, "she": 88, "ji": 50, "chuang": 65, "wen": 55, "ling": 80, "ren": 72}, "voice": "把对的人放在对的位置。", "match": "你的碗里装的是人和资源的连接。测试里，团队意见不合你找关键成员聊，朋友开店你想招呼客人，不上班你想约好友。你天生适合吃连接这碗饭，项目经理、商务拓展、社群运营、经纪人，凡是需要把不同的人凑在一起做成事的地方，你都能发挥。你不一定是最专业的，但你知道谁专业。你擅长让1+1大于2，但也要注意别把自己变成纯粹的工具人。你的天生饭碗，是连接，不是讨好。"}, {"name": "先锋", "era": "开拓纪元", "role": "冒险破局", "tags": ["冒险", "开拓", "勇气"], "v": {"guan": 70, "zhi": 60, "she": 65, "ji": 55, "chuang": 88, "wen": 30, "ling": 85, "ren": 48}, "voice": "没人走过，那就我来走。", "match": "你的碗里装的是未知的地图。测试里，预算被砍你试新方案，长期项目你从零画蓝图，不上班你去陌生街区找灵感。你天生适合吃开拓这碗饭，创业、新市场、新品类、探险，凡是没人做过的事，你都想去试试。你受不了重复和一成不变，你的能量来自新鲜感和挑战。但也要学会在冲刺后休整，不是每次冒险都必须赢。你的天生饭碗，是开拓，不是安稳。"}, {"name": "匠人", "era": "品质纪元", "role": "精益求精", "tags": ["品质", "专注", "打磨"], "v": {"guan": 48, "zhi": 88, "she": 40, "ji": 90, "chuang": 55, "wen": 70, "ling": 45, "ren": 52}, "voice": "差一点，都不行。", "match": "你的碗里装的是对细节的执念。测试里，朋友开店你想死磕品质，不上班你啃想学的东西，同事甩锅你用新方法盘活。你天生适合吃匠人这碗饭，设计、制造、烹饪、手工艺，凡是需要精益求精的地方，你都能靠作品说话。你不太擅长应付场面，但你的东西一拿出来，别人就闭嘴了。别因为追求完美而拖延交付，完成比完美更重要。你的天生饭碗，是打磨，不是内耗。"}, {"name": "摆渡人", "era": "助人纪元", "role": "引导成长", "tags": ["引导", "助人", "耐心"], "v": {"guan": 65, "zhi": 58, "she": 82, "ji": 45, "chuang": 60, "wen": 72, "ling": 68, "ren": 90}, "voice": "我陪你走这段路。", "match": "你的碗里装的是陪人过河的耐心。测试里，预算被砍你先稳情绪，朋友开店你想搞气氛，不上班你想和好友聊到深夜。你天生适合吃助人这碗饭，教师、教练、咨询师、导师，凡是需要陪别人成长的地方，你都能找到意义。你不急着给答案，更擅长问对问题。你从别人的进步里获得能量，但也要小心别把别人的课题背在自己身上。你的天生饭碗，是引导，不是拯救。"}, {"name": "多面手", "era": "复合纪元", "role": "跨界融合", "tags": ["跨界", "多能", "适应"], "v": {"guan": 68, "zhi": 72, "she": 75, "ji": 68, "chuang": 78, "wen": 50, "ling": 85, "ren": 60}, "voice": "什么都会一点，机会就多一点。", "match": "你的碗里装的是各种颜色的技能。测试里，你既想定方向又想搞气氛，既想啃技术又想找灵感。你天生适合吃多面这碗饭，产品经理、创业者、自由职业、内容创作，凡是需要跨界整合的地方，你都能靠组合拳胜出。你不喜欢被单一标签定义，你的优势在于什么都能聊、什么都能上手。但也要注意，别因为太广而缺少一锤定音的长板。你的天生饭碗，是融合，不是散乱。"}, {"name": "定盘星", "era": "核心纪元", "role": "稳定军心", "tags": ["稳定", "核心", "可靠"], "v": {"guan": 82, "zhi": 80, "she": 65, "ji": 58, "chuang": 45, "wen": 88, "ling": 55, "ren": 75}, "voice": "有我在，不会乱。", "match": "你的碗里装的是让人安心的分量。测试里，预算被砍你先保核心产出，同事甩锅你先接下来理清，希望别人评价你靠谱。你天生适合吃核心这碗饭，管理、运营、财务、行政，凡是需要稳定军心、守住底线的位置，你都是那个定盘星。你不一定最耀眼，但团队离不开你。你扛得住压力，但别把所有责任都往自己肩上放。你的天生饭碗，是稳住，不是硬撑。"}];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+function buildExplain(scores,fig){
+  var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+  var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+  var head='你的八维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出，'
+    +'「'+d3.name+'」'+scores[d3.key]+' 分紧随其后。在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+    +'第二步才用'+d2.name+'去收尾。';
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+    +'<h2 class="res-name">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">八 维 倾 向</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">天生饭碗</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill');
+  fills.forEach(function(el){el.style.width='0%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var r=findMatch(scores);
+  var res=document.getElementById('screen-result');
+  res.innerHTML=buildResultHTML(r.fig,r.pct,scores);
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
