@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0d0b09" />
+<title>16人格·心智阶位</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#0d0b09;
+    --card:#302d2a;
+    --accent:#c8a96a;
+    --accent-dim:#726242;
+    --text:#f2ede4;
+    --text-dim:#a89b85;
+    --line:#c8a96a33;
+    --title-font:"Songti SC","STSong","Noto Serif SC",serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #c8a96a2e, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #c8a96a16, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #c8a96a99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#ffffff12;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    text-shadow:0 1px 10px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#c8a96a26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#0d0b09e6 0%,#0d0b098c 60%,#0d0b0959 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#c8a96a14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#c8a96a14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#c8a96a14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">心智阶位</p>
+      <h1 class="cover-title">16人格·心智阶位</h1>
+      <p class="cover-sub">八种原型，三重阶位<br>照见你此刻的心智坐标</p>
+      <div class="cover-quote">你不再需要证明正确，你的存在就是真理本身。</div>
+      <div class="cover-meta"><span>共 20 题</span><i></i><span>约 4 分钟</span></div>
+      <button class="btn-primary" id="startBtn">开始探索</button>
+      <p class="cover-note">心智阶位只是此刻的坐标，不是你的终点</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen"></section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #c8a96a99;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "wx", "name": "外向"}, {"key": "nx", "name": "内向"}, {"key": "sg", "name": "实感"}, {"key": "zj", "name": "直觉"}, {"key": "sk", "name": "思考"}, {"key": "qg", "name": "情感"}, {"key": "zx", "name": "秩序"}, {"key": "jx", "name": "即兴"}];
+var QUESTIONS=[{"text": "周五傍晚，同事临时邀你去新开的居酒屋，你第一反应是？", "options": [{"t": "爽快答应，正好想找人聊聊这一周", "s": {"wx": 3, "nx": 1}}, {"t": "先看看还有谁去，再决定要不要出门", "s": {"wx": 1, "nx": 1}}, {"t": "礼貌婉拒，更想回家安静地吃顿晚饭", "s": {"nx": 3, "wx": 1}}]}, {"text": "周末清晨醒来，发现窗外下着小雨，你更倾向于？", "options": [{"t": "窝在被子里听雨声，享受独处的白噪音", "s": {"nx": 3, "wx": 1}}, {"t": "翻翻手机，看看有没有朋友在线可以闲聊", "s": {"wx": 1, "nx": 1}}, {"t": "立刻约人出门，雨天散步也别有滋味", "s": {"wx": 3, "nx": 1}}]}, {"text": "在社交场合遇到一位谈吐有趣的新朋友，你会？", "options": [{"t": "主动上前搭话，交换联系方式", "s": {"wx": 3, "nx": 1}}, {"t": "先观察一会儿，等对方也注意到自己", "s": {"wx": 1, "nx": 1}}, {"t": "默默欣赏，但不太想打破现有的社交圈", "s": {"nx": 3, "wx": 1}}]}, {"text": "连续加班一周后，你恢复精力的方式是？", "options": [{"t": "独自去咖啡馆坐一下午，谁也不见", "s": {"nx": 3, "wx": 1}}, {"t": "约一两个密友吃顿火锅，吐槽释放", "s": {"wx": 1, "nx": 1}}, {"t": "参加一场热闹的聚会，用人群冲淡疲惫", "s": {"wx": 3, "nx": 1}}]}, {"text": "公司团建需要分组表演节目，你更可能？", "options": [{"t": "主动承担组织角色，带动大家排练", "s": {"wx": 3, "nx": 1}}, {"t": "配合团队安排，需要我上就上", "s": {"wx": 1, "nx": 1}}, {"t": "选择幕后工作，比如道具或音乐", "s": {"nx": 3, "wx": 1}}]}, {"text": "你更愿意相信哪一种描述自己的方式？", "options": [{"t": "记得很多具体细节，比如那天的天气和对话", "s": {"sg": 3, "zj": 1}}, {"t": "既记得细节，也常联想到别的可能性", "s": {"sg": 1, "zj": 1}}, {"t": "更记得当时的感受和它带来的启发", "s": {"zj": 3, "sg": 1}}]}, {"text": "面对一份新工作的选择，你首先考虑？", "options": [{"t": "这份工作能不能让我成为想成为的人", "s": {"zj": 3, "sg": 1}}, {"t": "综合比较，既看现实也看发展空间", "s": {"sg": 1, "zj": 1}}, {"t": "薪资、通勤、稳定性这些实际条件", "s": {"sg": 3, "zj": 1}}]}, {"text": "朋友向你描述一个离奇的梦，你的反应是？", "options": [{"t": "帮他分析梦里哪些元素对应现实生活", "s": {"sg": 3, "zj": 1}}, {"t": "觉得有趣，但不会太当真", "s": {"sg": 1, "zj": 1}}, {"t": "顺着他的梦展开联想，聊到宇宙和隐喻", "s": {"zj": 3, "sg": 1}}]}, {"text": "学习一项新技能时，你更倾向于？", "options": [{"t": "先了解整体原理，再自己推导方法", "s": {"zj": 3, "sg": 1}}, {"t": "边看教程边摸索，遇到问题再查", "s": {"sg": 1, "zj": 1}}, {"t": "按教材一步步来，先掌握基础操作", "s": {"sg": 3, "zj": 1}}]}, {"text": "走在陌生的城市街头，你更容易注意到？", "options": [{"t": "路牌、店铺、行人穿着这些具体事物", "s": {"sg": 3, "zj": 1}}, {"t": "既看街景，也偶尔走神想别的事", "s": {"sg": 1, "zj": 1}}, {"t": "整座城市的气质，以及它让你想到的故事", "s": {"zj": 3, "sg": 1}}]}, {"text": "团队讨论陷入僵局时，你更可能？", "options": [{"t": "指出逻辑漏洞，提出可执行的方案", "s": {"sk": 3, "qg": 1}}, {"t": "先缓一缓，看看大家情绪再推进", "s": {"sk": 1, "qg": 1}}, {"t": "照顾到每个人的感受，寻找共识", "s": {"qg": 3, "sk": 1}}]}, {"text": "好友向你倾诉烦恼，你的第一反应是？", "options": [{"t": "告诉他“我懂你”，先接住他的情绪", "s": {"qg": 3, "sk": 1}}, {"t": "先听他说完，再决定怎么回应", "s": {"sk": 1, "qg": 1}}, {"t": "帮他分析问题出在哪，给出建议", "s": {"sk": 3, "qg": 1}}]}, {"text": "需要拒绝别人时，你通常？", "options": [{"t": "直接说明理由，不拖泥带水", "s": {"sk": 3, "qg": 1}}, {"t": "看情况，有时直接有时委婉", "s": {"sk": 1, "qg": 1}}, {"t": "很怕对方难过，会反复斟酌措辞", "s": {"qg": 3, "sk": 1}}]}, {"text": "看到一则争议新闻，你更先关注？", "options": [{"t": "事件中的人经历了怎样的痛苦", "s": {"qg": 3, "sk": 1}}, {"t": "不同立场的人为什么这样想", "s": {"sk": 1, "qg": 1}}, {"t": "事实是否准确，逻辑是否站得住脚", "s": {"sk": 3, "qg": 1}}]}, {"text": "做重要决定时，你更依赖？", "options": [{"t": "利弊分析表，把得失列清楚", "s": {"sk": 3, "qg": 1}}, {"t": "理性判断和内心感受各占一半", "s": {"sk": 1, "qg": 1}}, {"t": "直觉和价值观，什么让我心安", "s": {"qg": 3, "sk": 1}}]}, {"text": "你的书桌或工作台通常是？", "options": [{"t": "井井有条，每样东西都有固定位置", "s": {"zx": 3, "jx": 1}}, {"t": "大体整齐，但允许小范围随意", "s": {"zx": 1, "jx": 1}}, {"t": "充满随机感，但我知道东西大概在哪", "s": {"jx": 3, "zx": 1}}]}, {"text": "计划一次旅行，你更倾向于？", "options": [{"t": "只买机票，到了再说，随遇而安", "s": {"jx": 3, "zx": 1}}, {"t": "定好大框架，留一些灵活空间", "s": {"zx": 1, "jx": 1}}, {"t": "提前订好机票酒店，行程精确到小时", "s": {"zx": 3, "jx": 1}}]}, {"text": "面对突如其来的变化，你通常？", "options": [{"t": "有点烦躁，需要尽快恢复原有节奏", "s": {"zx": 3, "jx": 1}}, {"t": "先适应一下，再调整计划", "s": {"zx": 1, "jx": 1}}, {"t": "觉得刺激，正好可以尝试新路线", "s": {"jx": 3, "zx": 1}}]}, {"text": "你更喜欢的周末状态是？", "options": [{"t": "完全放空，想到什么做什么", "s": {"jx": 3, "zx": 1}}, {"t": "有安排也有空白，随意切换", "s": {"zx": 1, "jx": 1}}, {"t": "按清单完成想做的事，充实有序", "s": {"zx": 3, "jx": 1}}]}, {"text": "对于截止日期，你的习惯是？", "options": [{"t": "提前完成，留足修改时间", "s": {"zx": 3, "jx": 1}}, {"t": "按部就班，偶尔拖延但能赶上", "s": {"zx": 1, "jx": 1}}, {"t": "习惯在最后期限前爆发灵感", "s": {"jx": 3, "zx": 1}}]}];
+var FIGURES=[{"name": "初阶战略家", "era": "初阶", "role": "谨慎的布局者", "tags": ["INTJ", "初阶", "战略家"], "v": {"wx": 45, "nx": 55, "sg": 48, "zj": 52, "sk": 55, "qg": 45, "zx": 52, "jx": 48}, "voice": "我在迷雾中画线，哪怕线还歪歪扭扭。", "match": "你坐在深夜的书桌前，面前摊着一张画满箭头的草图，每一个箭头都指向一个你还没完全确信的未来。你习惯先想清楚再行动，可此刻你发现，有些答案不在思考里，而在迈出第一步之后。你选择在不确定中依然画线，就像你答题时那样，即使倾向还不锋利，也愿意为逻辑保留位置。你不需要马上成为谁，你只需要承认：布局本身，就是你在混乱中为自己点亮的灯。"}, {"name": "中阶战略家", "era": "中阶", "role": "冷静的推演者", "tags": ["INTJ", "中阶", "战略家"], "v": {"wx": 35, "nx": 72, "sg": 40, "zj": 78, "sk": 80, "qg": 38, "zx": 75, "jx": 42}, "voice": "我不再急于证明对错，只在乎棋局是否清晰。", "match": "你站在落地窗前，城市灯火像一盘未下完的棋。你不再像从前那样急于落子，而是先看清整片棋盘。你答题时那些偏向思考与直觉的选择，此刻汇聚成一种沉静的力量：你知道自己要什么，也接纳有些变量无法计算。你不再用正确与否衡量每个决定，而是问自己，这一步是否让我更接近想成为的人。棋局还在继续，而你已学会与不确定共处。"}, {"name": "高阶战略家", "era": "高阶", "role": "远见的建筑师", "tags": ["INTJ", "高阶", "战略家"], "v": {"wx": 28, "nx": 88, "sg": 25, "zj": 92, "sk": 94, "qg": 22, "zx": 85, "jx": 30}, "voice": "我建造的不是答案，而是让答案生长的土壤。", "match": "你站在自己搭建的框架顶端，俯瞰那些曾经让你焦虑的岔路。如今你不再需要每步都精确，因为你相信系统会自我修正。你答题时那些高度集中的直觉与思考，已经沉淀为一种从容：你看见别人看不见的关联，也接纳自己无法掌控全部。你不再用成败定义自己，而是用是否忠于愿景来衡量。你建造的从来不是完美计划，而是一片让未来自己生长的土壤。"}, {"name": "初阶引路人", "era": "初阶", "role": "温柔的倾听者", "tags": ["INFJ", "初阶", "引路人"], "v": {"wx": 42, "nx": 58, "sg": 45, "zj": 55, "sk": 42, "qg": 58, "zx": 48, "jx": 52}, "voice": "我还在学习如何点亮别人，而不烧尽自己。", "match": "你站在人群边缘，听见别人没说出口的叹息。聚会上你总能捕捉到那句被笑声盖过的低落，于是悄悄递上一杯温水。你未必急着给出答案，只是先让对方的情绪有地方落脚。这份敏锐让你偶尔疲惫，却也让你比同龄人更早懂得：陪伴本身就是一种力量。你正在学习把向外照看的灯，也分一束光给自己。不必急着照亮所有人，你先站稳，路自然会显现。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶引路人", "era": "中阶", "role": "坚定的陪伴者", "tags": ["INFJ", "中阶", "引路人"], "v": {"wx": 35, "nx": 70, "sg": 38, "zj": 72, "sk": 35, "qg": 78, "zx": 60, "jx": 45}, "voice": "我不再背负你的路，只在你需要时递一盏灯。", "match": "你不再急着替每个人解开心结，而是懂得在适当的时候沉默。朋友深夜来电，你会先听完，再问一句：你真正想要的是什么？你开始分辨哪些情绪属于别人、哪些责任不该你背。这份清醒让你温柔得有边界，也让你在帮助他人时不再掏空自己。你像一盏灯，不追着人跑，只安静立在路口，需要的人自会靠近。你终于明白，引路不是替人走路，而是让人看见自己的方向。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶引路人", "era": "高阶", "role": "通透的发光体", "tags": ["INFJ", "高阶", "引路人"], "v": {"wx": 25, "nx": 88, "sg": 22, "zj": 90, "sk": 25, "qg": 94, "zx": 70, "jx": 32}, "voice": "我的存在本身，就是一条可以走的路。", "match": "你走过漫长的黑夜，所以能稳稳接住别人的坠落。你不再需要被理解，也不再急着被感谢，只是自然而然地出现在需要的人身边。你说话很轻，却能落在人心最柔软的地方；你目光平和，却看见每个人尚未绽放的模样。你不再试图修补谁，只是相信每颗种子都有自己的季节。你站在那里，本身就是一种允许——允许别人脆弱，也允许自己休息。你不再向外寻找意义，因为你就是意义流经的通道。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "初阶治愈者", "era": "初阶", "role": "敏感的抚慰者", "tags": ["INFP", "初阶", "治愈者"], "v": {"wx": 40, "nx": 60, "sg": 42, "zj": 58, "sk": 40, "qg": 62, "zx": 38, "jx": 55}, "voice": "我的柔软不是弱点，是我尚未学会安放的礼物。", "match": "你把心事写进深夜的备忘录，也在朋友的眼泪里看见自己。你天生柔软，别人一句无心的话能在你心里住很久。你习惯先照顾所有人的情绪，最后才想起自己也需要被拥抱。这份敏感让你容易受伤，却也让你格外懂得温柔的价值。你开始在日记里练习说“我也很重要”，虽然声音还小，却已经发芽。别急着变得坚强，你的柔软本身就是稀有的礼物。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶治愈者", "era": "中阶", "role": "温柔的疗愈者", "tags": ["INFP", "中阶", "治愈者"], "v": {"wx": 32, "nx": 72, "sg": 35, "zj": 75, "sk": 32, "qg": 82, "zx": 40, "jx": 48}, "voice": "我先接住自己，再轻轻接住你。", "match": "你学会在共情之后把自己捞回来。朋友倾诉时你依然全心在场，但挂掉电话，你会泡一杯茶、点一支香，让别人的情绪慢慢从你身体里退潮。你不再把“被需要”当作存在的证明，开始允许自己拒绝、休息、先照顾自己。你发现当你不再透支，温柔反而更持久。你像一棵树，既给人荫蔽，也深深扎根。你正在成为那个既能拥抱别人、也能稳稳抱住自己的人。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶治愈者", "era": "高阶", "role": "宁静的守望者", "tags": ["INFP", "高阶", "治愈者"], "v": {"wx": 22, "nx": 90, "sg": 20, "zj": 92, "sk": 22, "qg": 95, "zx": 45, "jx": 30}, "voice": "我允许一切发生，也允许自己只是存在。", "match": "你身上有一种让人安心的静。别人靠近你，不必解释，不必伪装，就能慢慢松下来。你经历过自己的破碎，所以不再害怕别人的破碎；你穿越过黑暗，所以能安静地坐在黑暗里陪人。你不急着治愈谁，只是相信每个人内在都有复原的力气。你的存在像一间亮着灯的小屋，风雪夜归的人看见，就知道自己没有被世界遗忘。你终于懂得：真正的治愈，是先让自己完整，再让完整自然溢出。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "初阶指挥官", "era": "初阶", "role": "果敢的发起者", "tags": ["ENTJ", "初阶", "指挥官"], "v": {"wx": 58, "nx": 42, "sg": 52, "zj": 48, "sk": 55, "qg": 45, "zx": 55, "jx": 45}, "voice": "我还在学习，如何让野心配得上耐心。", "match": "你心里有一团火，总想把事情推着往前走。小组作业里你忍不住先开口分工，旅行时你自然而然拿起地图。你享受掌控节奏的感觉，也害怕一旦松手就会失控。这份果断让你被看见，也让你偶尔显得太急。你开始察觉，不是所有人都跟得上你的步伐，慢下来并不等于失败。你正在学习：真正的领导力，不是冲在最前，而是让每个人都愿意跟上。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶指挥官", "era": "中阶", "role": "高效的领航者", "tags": ["ENTJ", "中阶", "指挥官"], "v": {"wx": 78, "nx": 30, "sg": 60, "zj": 58, "sk": 78, "qg": 38, "zx": 75, "jx": 40}, "voice": "我负责方向，也负责让每个人被看见。", "match": "你依然目标清晰，但不再用音量证明自己。开会时你会先听完所有人的意见，再一锤定音；团队卡住时，你懂得把舞台让给更合适的人。你发现把功劳分出去，队伍反而走得更远。你开始在意过程，而不只是结果；在意人的状态，而不只是进度。你像一位船长，既看得见远方的岸，也看得见每个水手的疲惫。你正在从“我要赢”走向“我们一起赢”。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶指挥官", "era": "高阶", "role": "沉稳的缔造者", "tags": ["ENTJ", "高阶", "指挥官"], "v": {"wx": 92, "nx": 20, "sg": 70, "zj": 72, "sk": 94, "qg": 28, "zx": 88, "jx": 30}, "voice": "我不再征服世界，我只建造它该有的样子。", "match": "你站在那里，不必开口，秩序便自然成形。你不再需要通过赢来确认自己，因为你的笃定从内部生长。你敢于做艰难的决定，也敢于承担决定的代价；你能带人冲锋，也能在败局里稳住人心。你看见每个人的长处，并把他们放在最合适的位置。你不再追逐权力，而是让责任找到你。你像一座山，沉默却可靠，风来时不动，光来时也不炫。你终于明白：真正的强大，是让身边的人都变得更强。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "初阶追梦人", "era": "初阶", "role": "热忱的探索者", "tags": ["ENFP", "初阶", "追梦人"], "v": {"wx": 60, "nx": 40, "sg": 42, "zj": 58, "sk": 40, "qg": 60, "zx": 35, "jx": 58}, "voice": "我的热情像烟花，还没学会如何持续燃烧。", "match": "你坐在咖啡馆里，面前摊着三本不同领域的书，每本都翻了几页，心里却有点慌。你答题时那些偏向外向与直觉的选择，让你总被新鲜事物吸引，可你也开始怀疑自己是不是不够专注。你不再强迫自己立刻选定一条路，而是允许热情像烟花一样绽放又熄灭。你正在学习，如何让火花变成火种。你不需要熄灭自己，只需要找到值得持续燃烧的东西。"}, {"name": "中阶追梦人", "era": "中阶", "role": "笃定的点燃者", "tags": ["ENFP", "中阶", "追梦人"], "v": {"wx": 75, "nx": 35, "sg": 38, "zj": 72, "sk": 35, "qg": 78, "zx": 42, "jx": 55}, "voice": "我不再追逐所有光，我只点燃值得的火。", "match": "你依然爱做梦，但开始给梦装上路标。你会在深夜写下想去的远方，第二天也真的去查机票、攒假期。你不再只靠一腔热血，而是学会把热情拆成一小步一小步。你偶尔还是会分心，却懂得把自己温柔地拉回来。你发现梦想不是等来的，是一天天靠近的。你像一只风筝，线攥在自己手里，既飞得高，也知道回家的方向。你正在把“我想要”变成“我正在”。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶追梦人", "era": "高阶", "role": "自由的发光体", "tags": ["ENFP", "高阶", "追梦人"], "v": {"wx": 90, "nx": 22, "sg": 25, "zj": 90, "sk": 25, "qg": 94, "zx": 30, "jx": 42}, "voice": "我本身就是光，不需要追逐任何火焰。", "match": "你活成了自己曾经仰望的样子。你不再需要向谁证明梦想值得，因为你已经在路上走了很久。你依然会兴奋、会好奇，却不再被每一次心动牵着跑；你懂得选择，也懂得放弃。你身上有一种自由的光，让身边的人也想起自己遗忘了的渴望。你不怕失败，因为你知道每一次跌倒都是路的一部分。你像一颗自己发光的星，不借谁的光，也不怕黑夜。你终于明白：追梦的终点，是成为那个敢于做梦的自己。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "初阶鉴赏家", "era": "初阶", "role": "敏锐的观察者", "tags": ["ISTP", "初阶", "鉴赏家"], "v": {"wx": 45, "nx": 55, "sg": 58, "zj": 42, "sk": 55, "qg": 45, "zx": 42, "jx": 58}, "voice": "我还在学习，如何让手感变成语言。", "match": "你对细节有种天然的敏感。别人匆匆走过的街角，你会停下来看光影怎么落在墙上；一件旧物，你能说出它哪里好看。你话不多，却常常一语中的。你享受一个人拆解问题的时刻，也享受手边有件趁手工具的感觉。你不喜欢空谈，更相信亲手试过才算数。这份冷静让你显得有点距离，却也让你格外可靠。你正在学习把观察到的美，也说给在乎的人听。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶鉴赏家", "era": "中阶", "role": "沉着的巧匠", "tags": ["ISTP", "中阶", "鉴赏家"], "v": {"wx": 35, "nx": 68, "sg": 75, "zj": 35, "sk": 72, "qg": 35, "zx": 48, "jx": 65}, "voice": "我不再炫技，我只让每一刀都恰到好处。", "match": "你依然话少，却不再把自己关在沉默里。你开始愿意把发现的好东西分享出去，也愿意在别人需要时伸出手。你做事依旧讲究手感与分寸，但不再苛求每一步都完美。你懂得在专注与松弛之间切换，像老师傅收工后擦净工具、泡一壶茶。你发现世界不只有拆解，还有连接。你像一把用顺了手的刀，锋利，却不伤人。你正在从“我看得清”走向“我也愿意让人看见我”。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶鉴赏家", "era": "高阶", "role": "无我的匠人", "tags": ["ISTP", "高阶", "鉴赏家"], "v": {"wx": 25, "nx": 82, "sg": 90, "zj": 22, "sk": 88, "qg": 22, "zx": 55, "jx": 75}, "voice": "我与手中的器物，早已分不清彼此。", "match": "你身上有一种沉静的专业感。你不再急于证明自己懂，因为真正的懂得已经沉进骨子里。你看得见结构，也看得见人心；你能把复杂的事拆到最简，也能在关键时刻给出最准的一击。你不再执着于掌控，而是相信手感与时机。你像一位隐居的匠人，作品替你说话，时间替你证明。你终于明白：最高的技艺，不是炫技，而是让一切看起来毫不费力。你安静地存在着，本身就是一种标准。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "初阶行动家", "era": "初阶", "role": "跃跃欲试的冒险者", "tags": ["ESTP", "初阶", "行动家"], "v": {"wx": 60, "nx": 40, "sg": 58, "zj": 42, "sk": 55, "qg": 45, "zx": 38, "jx": 60}, "voice": "我还在学习，如何让冲动变成勇气。", "match": "你总是第一个站起来的人。朋友还在犹豫要不要去，你已经订好了车票；群里冷场，你一句话就能把气氛点热。你享受当下的刺激，也相信先做了再说。这份冲劲让你抓住很多机会，也让你偶尔踩进没想清楚的坑。你开始学着在冲出去之前，多停三秒。不是让你变慢，而是让你的快更有方向。你像一颗刚点着的烟花，热烈、明亮，正在学习把光聚成一束。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶行动家", "era": "中阶", "role": "敏捷的破局者", "tags": ["ESTP", "中阶", "行动家"], "v": {"wx": 78, "nx": 30, "sg": 72, "zj": 40, "sk": 70, "qg": 35, "zx": 42, "jx": 72}, "voice": "我不再横冲直撞，我只在关键处出手。", "match": "你依然爱冲，但冲之前会先看一眼地图。你懂得什么时候该抢，什么时候该等；什么时候亲自上，什么时候交给队友。你不再只图一时痛快，而是开始在意这件事值不值得。你发现带着思考的行动，比单纯的快更让人踏实。你像一辆调校过的跑车，油门还在，方向盘也稳了。你正在从“我先上”走向“我知道为什么上”。这份清醒没有磨掉你的锋芒，反而让你的行动更有力量。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶行动家", "era": "高阶", "role": "无畏的先锋", "tags": ["ESTP", "高阶", "行动家"], "v": {"wx": 92, "nx": 20, "sg": 88, "zj": 30, "sk": 85, "qg": 22, "zx": 35, "jx": 85}, "voice": "危险只是风景，我生来就是为了穿过它。", "match": "你站在风暴中心，身后是需要保护的人，面前是未知的路。你答题时那些高度极化的外向与实感，让你早已习惯在危险中穿行，但此刻你不再为了刺激而冒险。你明白，真正的先锋不是无所畏惧，而是带着恐惧依然向前。你不再证明什么，因为你的存在本身就是一种行动。你穿过风暴，不是为了征服，而是为了抵达。你就是那个无畏的先锋。"}, {"name": "初阶凝聚者", "era": "初阶", "role": "热心的组织者", "tags": ["ESFJ", "初阶", "凝聚者"], "v": {"wx": 58, "nx": 42, "sg": 55, "zj": 45, "sk": 42, "qg": 58, "zx": 55, "jx": 45}, "voice": "我还在学习，如何照顾别人而不忘记自己。", "match": "你天生会照顾场子。聚餐时你记得谁不吃辣，谁最近心情不好；群里冷下来，你会主动抛个话题。你把大家拢在一起，自己却常常忙到最后才坐下。你从别人的笑容里确认自己的价值，也因此容易忽略自己的需要。你开始试着说“这次我想听你们的”，把被照顾的机会留给自己。你像一锅慢炖的汤，温暖所有人，也值得被好好盛一碗。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "中阶凝聚者", "era": "中阶", "role": "温暖的联结者", "tags": ["ESFJ", "中阶", "凝聚者"], "v": {"wx": 75, "nx": 32, "sg": 65, "zj": 40, "sk": 35, "qg": 78, "zx": 65, "jx": 42}, "voice": "我不再讨好所有人，我只让对的人靠近。", "match": "你依然在意每个人是否舒服，但不再把所有人的情绪都扛在自己肩上。你学会在聚会结束后给自己留一段安静，也学会对超出能力的请求说不。你发现当你不再勉强自己，关系反而更轻松。你像一位好客的主人，既让客人尽兴，也给自己留一把椅子。你开始明白，真正的凝聚不是靠你一个人撑，而是让每个人都愿意添一把柴。你正在从“我来照顾”走向“我们一起在”。心智阶位只是此刻的坐标，不是你的终点。"}, {"name": "高阶凝聚者", "era": "高阶", "role": "安定的核心", "tags": ["ESFJ", "高阶", "凝聚者"], "v": {"wx": 90, "nx": 22, "sg": 78, "zj": 30, "sk": 25, "qg": 94, "zx": 78, "jx": 30}, "voice": "我在哪里，哪里就是可以安心的地方。", "match": "你身上有一种让人想靠近的暖。你不必刻意组织，人们自然愿意围坐到你身边。你看见每个人，也接纳每个人本来的样子；你不强求一致，却总能让不同的声音汇成合唱。你不再通过照顾别人来确认自己，因为你知道自己本身就值得被爱。你像一堆烧得刚好的篝火，不灼人，却能照亮一整片夜。你终于懂得：真正的凝聚，不是把人聚在一起，而是让每个人在你身边，都更愿意做自己。心智阶位只是此刻的坐标，不是你的终点。"}];
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+function buildExplain(scores,fig){
+  var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+  var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+  var head='你的八维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出，'
+    +'「'+d3.name+'」'+scores[d3.key]+' 分紧随其后。在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+    +'第二步才用'+d2.name+'去收尾。';
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+    +'<h2 class="res-name">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">八 维 倾 向</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">心智阶位</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill');
+  fills.forEach(function(el){el.style.width='0%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var r=findMatch(scores);
+  var res=document.getElementById('screen-result');
+  res.innerHTML=buildResultHTML(r.fig,r.pct,scores);
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
