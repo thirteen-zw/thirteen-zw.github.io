@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
 <meta name="theme-color" content="#0A1228" />
-<title>MBTI Personality Test</title>
+<title>16人格·心智阶位</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   :root{
@@ -217,13 +217,13 @@
   <section id="screen-cover" class="screen active">
     <div class="cover">
       <img class="hero-img" src="img/hero.png" alt="cover art">
-      <p class="cover-eyebrow">PERSONALITY TYPE ASSESSMENT</p>
-      <h1 class="cover-title">MBTI Personality Test</h1>
-      <p class="cover-sub">Four Dimensions · Forced-Choice<br>Clarity-Based Tiers</p>
-      <div class="cover-quote">Your type is a coordinate, not a destination.</div>
+      <p class="cover-eyebrow">人格类型 · 专业测评</p>
+      <h1 class="cover-title">16人格·心智阶位</h1>
+      <p class="cover-sub">四维度迫选计分<br>偏好清晰度定阶</p>
+      <div class="cover-quote">心智阶位只是此刻的坐标，不是你的终点</div>
       <div class="cover-meta"><span>共 20 题</span><i></i><span>约 4 分钟</span></div>
       <button class="btn-primary" id="startBtn">开始测评</button>
-      <p class="cover-note">16 Types × Clarity Tiers · Standardized Scoring</p>
+      <p class="cover-note">16型×三阶位 · 标准化计分口径</p>
     </div>
   </section>
 
@@ -510,7 +510,7 @@ function buildMbtiResultHTML(fig,mb,scores,elems,picks){
     +'<p class="explain">'+why+'<br><br>'+fig.match+'</p></div>'
     +'<div class="disclaimer">类型描述认知偏好，16型无优劣之分；<br>清晰度反映偏好的明确程度，不是人格的高度。</div>'
     +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
-    +'<p class="foot-mark">PERSONALITY TYPE ASSESSMENT</p>';
+    +'<p class="foot-mark">人格类型 · 专业测评</p>';
 }
 function clipTxt(s,n){s=String(s);return s.length<=n?s:s.slice(0,n-1)+'…';}
 function calcElements(scores){
@@ -604,7 +604,7 @@ function buildResultHTML(fig,pct,scores,elems,picks){
     +'<p class="explain">'+buildExplain(scores,fig,picks,elems)+'</p></div>'
     +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
     +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
-    +'<p class="foot-mark">PERSONALITY TYPE ASSESSMENT</p>';
+    +'<p class="foot-mark">人格类型 · 专业测评</p>';
 }
 function animateBars(){
   var fills=document.querySelectorAll('.bar-fill,.axis-fill');
