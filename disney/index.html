@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#1a1220" />
+<title>你跟哪个迪士尼公主最像？ 灵魂同款公主鉴定</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#1a1220;
+    --card:#3f3447;
+    --accent:#f0c8d8;
+    --accent-dim:#8a6a7a;
+    --text:#f5eee6;
+    --text-dim:#b8a8b0;
+    --line:#3d2d45;
+    --title-font:"Songti SC","STSong","Noto Serif SC",serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #f0c8d82e, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #f0c8d816, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #f0c8d899;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#ffffff12;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    text-shadow:0 1px 10px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#f0c8d826;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#1a1220e6 0%,#1a12208c 60%,#1a122059 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+  /* 结果页背景图：与答题页同构（z-index:-1 沉底 + 渐变纱压图不压字），
+     三图体系第三张——揭晓时刻的归宿角落；透明度更低：结果文字量大，
+     背景只做氛围（2026-10-10） */
+  .res-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .res-bg img{width:100%;height:100%;object-fit:cover;opacity:.30;}
+  .res-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#1a1220e6 0%,#1a12208c 55%,#1a122059 100%);}
+  #screen-result{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-name.xl{font-size:48px;letter-spacing:10px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#f0c8d814;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  /* 核心元素卡：元素名 2-5 字比维度名长，名区放宽；占比条与维度条共用骨架 */
+  .el-card .bar-name{flex-basis:60px;}
+  .el-note{font-size:11.5px;line-height:1.9;color:var(--text-dim);margin-top:12px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  /* ---------- MBTI 专业模式 ---------- */
+  .res-code{
+    font-family:var(--title-font);
+    font-size:54px;font-weight:700;line-height:1.1;letter-spacing:10px;
+    color:var(--accent);margin-top:8px;font-variant-numeric:tabular-nums;
+  }
+  .tier-badge{
+    display:inline-block;margin-top:14px;padding:5px 16px;border-radius:999px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:12.5px;letter-spacing:2px;
+  }
+  .axis-row{display:flex;align-items:center;gap:9px;margin:9px 0;}
+  .axis-lab{flex:0 0 30px;font-size:12px;color:var(--text-dim);text-align:center;letter-spacing:1px;}
+  .axis-lab.lead{color:var(--accent);font-weight:700;}
+  .axis-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;position:relative;overflow:hidden;}
+  .axis-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--accent-dim);opacity:.55;z-index:2;}
+  /* 端部填充（从两侧边缘向内覆盖到占比位置）+ 滑块点：中间延伸式填充在
+     55-70% 常见区间只有百分之几宽，视觉几乎不可见（10-12 首跑目视打回） */
+  .axis-fill{position:absolute;top:0;height:100%;width:0;transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-fill.l{left:0;background:var(--accent-dim);opacity:.45;}
+  .axis-fill.l.lead{background:var(--accent);opacity:.85;}
+  .axis-fill.r{right:0;background:var(--accent-dim);opacity:.18;}
+  .axis-dot{position:absolute;top:50%;left:0;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#ffffff;box-shadow:0 0 6px var(--accent);z-index:3;transition:left .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-val{flex:0 0 56px;text-align:right;font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .func-row{display:flex;align-items:center;gap:12px;margin:8px 0;}
+  .func-cap{flex:0 0 64px;font-size:11.5px;color:var(--text-dim);letter-spacing:1px;}
+  .func-cap.lead{color:var(--accent);font-weight:700;}
+  .func-name{font-size:14px;color:var(--text);}
+  .tier-desc{font-size:13.5px;line-height:2;color:var(--text);text-align:justify;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#f0c8d814;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#f0c8d814;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">公主鉴定所</p>
+      <h1 class="cover-title">你跟哪个迪士尼公主最像？<br>灵魂同款公主鉴定</h1>
+      <p class="cover-sub">12 位公主的灵魂档案已备好<br>你的皇冠一直在等你认领</p>
+      <div class="cover-quote">用日常选择照见本能，看看你骨子里住着哪位公主的灵魂。</div>
+      <div class="cover-meta"><span>共 14 题</span><i></i><span>约 3 分钟</span></div>
+      <button class="btn-primary" id="startBtn">认领皇冠</button>
+      <p class="cover-note">本测试纯属娱乐，每位公主都值得被偏爱</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="res-bg"><img src="img/resbg.png" alt=""></div>
+    <div id="resultBody"></div>
+  </section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #f0c8d899;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "td", "name": "特立独行"}, {"key": "yq", "name": "勇气担当"}, {"key": "cx", "name": "好奇求知"}, {"key": "wr", "name": "温柔亲和"}, {"key": "lm", "name": "浪漫梦幻"}, {"key": "sw", "name": "务实坚韧"}];
+var QUESTIONS=[{"text": "连续加班一周后终于迎来周末，你最想怎么过？", "options": [{"t": "窝在家里读完一本搁置很久的小说", "s": {"cx": 2, "wr": 1}}, {"t": "约朋友去郊外徒步，呼吸新鲜空气", "s": {"yq": 2, "cx": 1}}, {"t": "把房间彻底整理一遍，列下周计划", "s": {"sw": 2, "td": 1}}]}, {"text": "小组讨论时，有人把你的创意说成自己的想法，你会？", "options": [{"t": "当场平静指出事实，拿回属于自己的功劳", "s": {"yq": 3}}, {"t": "会后私下找对方沟通，给对方留面子", "s": {"wr": 2, "sw": 1}}, {"t": "先不戳破，用后续表现让大家看清真相", "s": {"td": 2, "sw": 1}}]}, {"text": "收到不太熟的朋友的生日聚会邀请，你第一反应是？", "options": [{"t": "挺开心，正好去认识些新朋友", "s": {"cx": 2, "wr": 1}}, {"t": "有点犹豫，担心去了不知道聊什么", "s": {"wr": 1, "sw": 1}}, {"t": "看当天心情，想去就去不想就婉拒", "s": {"td": 2}}]}, {"text": "旅行途中突然迷路，手机也快没电了，你会？", "options": [{"t": "冷静看路标和地图，自己找方向", "s": {"yq": 2, "sw": 1}}, {"t": "找附近的人问路，顺便聊几句", "s": {"wr": 2, "cx": 1}}, {"t": "先找个地方坐下，理清思路再行动", "s": {"td": 1, "sw": 1}}]}, {"text": "逛街时看到一件很喜欢但有点贵的裙子，你会？", "options": [{"t": "攒钱买下，喜欢就值得拥有", "s": {"sw": 2, "lm": 1}}, {"t": "等打折，或者找找类似款", "s": {"sw": 2, "td": 1}}, {"t": "拍张照存着，过几天可能就不想了", "s": {"td": 2}}]}, {"text": "如果要重新布置你的房间，你最想添置什么？", "options": [{"t": "一整面墙的书架和舒服的阅读灯", "s": {"cx": 2, "wr": 1}}, {"t": "星星灯、鲜花和柔软的抱枕", "s": {"lm": 2, "wr": 1}}, {"t": "简洁的收纳柜和一张大书桌", "s": {"sw": 2, "td": 1}}]}, {"text": "在朋友圈子里，你通常扮演什么角色？", "options": [{"t": "话题发起者，喜欢带大家玩新东西", "s": {"cx": 2, "yq": 1}}, {"t": "倾听照顾者，谁不开心都来找你", "s": {"wr": 3}}, {"t": "气氛观察者，默默关注每个人状态", "s": {"td": 2, "sw": 1}}]}, {"text": "遇到让你心动的人，你的态度是？", "options": [{"t": "主动制造机会，喜欢就要争取", "s": {"yq": 2, "td": 1}}, {"t": "顺其自然，相信缘分该来会来", "s": {"lm": 2, "wr": 1}}, {"t": "宁缺毋滥，先观察对方是否值得", "s": {"sw": 2, "td": 1}}]}, {"text": "新年钟声敲响时，你最想许下什么愿望？", "options": [{"t": "学会一项新技能，让自己更厉害", "s": {"cx": 2, "sw": 1}}, {"t": "去一个没去过的地方旅行", "s": {"cx": 1, "lm": 2}}, {"t": "存够一笔钱，离目标更近一步", "s": {"sw": 3}}]}, {"text": "朋友被同事当众刁难，你正好在场，你会？", "options": [{"t": "当场站出来替朋友说话", "s": {"yq": 3}}, {"t": "先拉朋友离开，事后再安慰", "s": {"wr": 2, "sw": 1}}, {"t": "暗中记下情况，找机会帮朋友化解", "s": {"td": 2, "sw": 1}}]}, {"text": "你更向往哪种周末的打开方式？", "options": [{"t": "一个人去美术馆或书店泡一整天", "s": {"cx": 2, "td": 1}}, {"t": "约上好友去户外野餐或骑行", "s": {"yq": 2, "wr": 1}}, {"t": "在家研究新菜谱，做顿好吃的", "s": {"sw": 2, "wr": 1}}]}, {"text": "工作上接到一个从没做过的任务，你会？", "options": [{"t": "兴奋，正好可以学新东西", "s": {"cx": 3}}, {"t": "先找有经验的同事请教", "s": {"wr": 2, "sw": 1}}, {"t": "自己查资料，一步步啃下来", "s": {"sw": 2, "td": 1}}]}, {"text": "看到不公平的事情发生在陌生人身上，你会？", "options": [{"t": "直接上前制止或报警", "s": {"yq": 3}}, {"t": "想办法提醒当事人，不直接冲突", "s": {"wr": 2, "sw": 1}}, {"t": "先观察情况，确保安全再行动", "s": {"sw": 2, "td": 1}}]}, {"text": "如果可以拥有一项魔法，你最想要？", "options": [{"t": "读懂所有书的语言", "s": {"cx": 3}}, {"t": "让身边的人永远开心", "s": {"wr": 2, "lm": 1}}, {"t": "随时去任何想去的地方", "s": {"td": 2, "yq": 1}}]}];
+var FIGURES=[{"name": "白雪", "era": "纯真", "role": "温柔善良的甜心", "tags": ["善良", "纯真", "亲和"], "v": {"td": 30, "yq": 40, "cx": 45, "wr": 95, "lm": 60, "sw": 50}, "voice": "希望每个人都开开心心的呀。", "match": "你像白雪一样，有一颗柔软又明亮的心。在朋友眼里，你总是那个愿意倾听、愿意照顾别人感受的人。你不太喜欢冲突，更愿意用善意化解尴尬。周末选择窝家读书或研究食谱，说明你享受安静温暖的时光；面对不公时你倾向于先观察再行动，这不是软弱，而是你相信温柔也是一种力量。你骨子里的善良不是天真，而是一种选择——选择看到世界美好的一面，并用自己的方式守护它。这样的你，值得被世界温柔以待。"}, {"name": "灰姑娘", "era": "坚韧", "role": "乐观的实干梦想家", "tags": ["乐观", "坚韧", "温柔"], "v": {"td": 45, "yq": 50, "cx": 50, "wr": 85, "lm": 65, "sw": 80}, "voice": "再难的日子，也要相信美好会来。", "match": "你像灰姑娘一样，温柔却不柔弱，踏实却不失梦想。你懂得在平凡的日子里保持乐观，也愿意为想要的生活付出努力。面对心仪之物你会选择攒钱或等打折，说明你务实又有耐心；朋友需要时你总是那个默默照顾的人。你相信苦尽甘来，也愿意为那一刻的到来坚持很久。你的温柔里藏着韧性，你的乐观不是盲目，而是经历过低谷后依然选择相信。这样的你，终会等到属于自己的那双水晶鞋。"}, {"name": "爱洛", "era": "梦幻", "role": "优雅恬静的梦幻家", "tags": ["优雅", "梦幻", "恬静"], "v": {"td": 50, "yq": 40, "cx": 55, "wr": 70, "lm": 95, "sw": 45}, "voice": "梦里有一整座玫瑰花园在等我。", "match": "你像爱洛一样，骨子里住着一位优雅的梦幻家。你对美有天然的感知力，喜欢星星灯、鲜花和一切柔软浪漫的事物。收到聚会邀请你会看心情决定，因为你更在意内心的舒适节奏而非热闹本身。你相信缘分，对待感情顺其自然，不愿将就。你的浪漫不是不切实际，而是你愿意在平凡生活里为自己保留一片梦幻花园。这样的你，走到哪里都自带柔光，让人忍不住想靠近，感受你那份恬静又迷人的气质。"}, {"name": "爱丽儿", "era": "冒险", "role": "为梦勇敢的叛逆人鱼", "tags": ["好奇", "勇敢", "叛逆"], "v": {"td": 70, "yq": 85, "cx": 90, "wr": 55, "lm": 70, "sw": 40}, "voice": "我想去看看海面上的世界！", "match": "你像爱丽儿一样，对未知充满好奇，也愿意为梦想冒险。你讨厌一成不变，喜欢收集新鲜事物，向往更广阔的世界。接到新任务你会兴奋，因为那意味着可以学到新东西；面对心动的人你也会主动制造机会，因为你相信喜欢就要争取。你的勇气不是莽撞，而是对生活热烈的渴望。你可能会为了一个想法不顾一切，也可能因为好奇而偏离常规，但正是这份冒险精神，让你的世界永远辽阔而精彩，从不缺少故事。"}, {"name": "贝儿", "era": "书卷", "role": "爱读书的智慧女孩", "tags": ["求知", "书卷", "独立"], "v": {"td": 65, "yq": 55, "cx": 95, "wr": 70, "lm": 60, "sw": 55}, "voice": "书里有更大的世界，也有更好的自己。", "match": "你像贝儿一样，把阅读当作通往世界的门。你享受一个人泡书店或美术馆的时光，也喜欢研究新技能来充实自己。在朋友中你常是那个安静却有见地的人，看人看内在，不随波逐流。面对不公你倾向先观察再行动，因为你在意真相而非一时痛快。你的独立不是冷漠，而是你知道自己想要什么。你相信知识能让人变得更温柔也更强大，所以你总是保持好奇，也愿意用这份智慧去理解身边每一个人和每一件事。"}, {"name": "茉莉", "era": "自由", "role": "有主见的自由灵魂", "tags": ["自由", "主见", "独立"], "v": {"td": 95, "yq": 70, "cx": 60, "wr": 50, "lm": 65, "sw": 55}, "voice": "我的人生，要由我自己来定义。", "match": "你像茉莉一样，天生带着一股不服输的独立劲儿。你讨厌被安排，喜欢自己拿主意，也愿意为自己的选择负责。收到聚会邀请你会看心情决定，因为你不愿为了合群委屈自己。看到喜欢的东西你会果断买下或干脆放下，绝不纠结太久。你的主见让你在人群中格外亮眼，你的自由灵魂让你敢于走少有人走的路。你不需要别人来定义你是谁，因为你知道自己想去哪里。这样的你，本身就是一道独特的风景。"}, {"name": "木兰", "era": "坚毅", "role": "勇敢孝义的战士", "tags": ["勇敢", "坚毅", "正义"], "v": {"td": 75, "yq": 95, "cx": 60, "wr": 65, "lm": 45, "sw": 70}, "voice": "该站出来的时候，我绝不会退缩。", "match": "你像木兰一样，骨子里有一股侠气。看到不公平的事，你很难袖手旁观，总会想办法站出来。朋友被刁难时，你会是那个当场发声或事后帮忙化解的人。工作上遇到挑战，你愿意硬扛下来，一步步啃硬骨头。你的勇气不是不害怕，而是即使害怕也选择向前。你重视责任和承诺，也愿意为在乎的人撑起一片天。这样的你，是朋友眼中最可靠的依靠，也是自己人生里最坚定的战士，从不轻易低头。"}, {"name": "蒂安娜", "era": "勤奋", "role": "有事业心的实干家", "tags": ["勤奋", "务实", "坚持"], "v": {"td": 55, "yq": 60, "cx": 50, "wr": 70, "lm": 45, "sw": 95}, "voice": "想要的生活，要靠自己一点点做出来。", "match": "你像蒂安娜一样，相信努力比空想更有力量。你习惯把目标拆成计划，一步步去完成。周末你会选择整理房间、列下周计划，或者研究新菜谱；新年愿望也常常和存钱、学技能有关。你不喜欢虚浮的浪漫，更看重实实在在的进步。在朋友中你是那个靠谱的存在，答应的事一定做到。你的务实不是无趣，而是你知道真正的安全感来自自己的双手。这样的你，正在用行动把梦想一点点熬成现实，踏实而闪亮。"}, {"name": "乐佩", "era": "向阳", "role": "乐观多才的向阳少女", "tags": ["乐观", "多才", "好奇"], "v": {"td": 65, "yq": 70, "cx": 85, "wr": 60, "lm": 80, "sw": 45}, "voice": "每一天都有新东西等着我去发现！", "match": "你像乐佩一样，对世界充满好奇，也总能找到让自己开心的事情。你喜欢尝试新技能，也愿意为一场旅行说走就走。面对新任务你会兴奋，遇到心动的人你也愿意主动靠近，因为你觉得人生就该热烈一点。你的浪漫和好奇是连在一起的，看到星空会感动，看到好书会沉迷。在朋友中你常是那个带动气氛的人，因为你的乐观很有感染力。这样的你，像一缕阳光，走到哪里都能把日子过得闪闪发光，让人忍不住跟着你一起笑。"}, {"name": "梅莉达", "era": "桀骜", "role": "爱自由的射手", "tags": ["桀骜", "勇敢", "自由"], "v": {"td": 90, "yq": 85, "cx": 60, "wr": 45, "lm": 55, "sw": 50}, "voice": "别想用规矩困住我，我有自己的箭。", "match": "你像梅莉达一样，桀骜不驯，热爱自由。你讨厌被条条框框束缚，更愿意按自己的节奏活。面对不公你会直接站出来，面对挑战你也敢迎头而上。朋友被刁难时，你绝不会假装没看见。你的勇敢带着一点野性，你的独立带着一点倔强。你不喜欢被安排人生，也不愿为了讨好谁而改变自己。这样的你，像一支离弦的箭，方向明确，速度惊人。你的自由不是任性，而是对自己内心的绝对忠诚，让人既羡慕又佩服。"}, {"name": "莫阿娜", "era": "航海", "role": "有责任心的探险者", "tags": ["探险", "责任", "勇敢"], "v": {"td": 70, "yq": 90, "cx": 85, "wr": 60, "lm": 50, "sw": 65}, "voice": "大海在召唤，我要去完成我的使命。", "match": "你像莫阿娜一样，既有探险精神，又有强烈的责任感。你对未知的世界充满向往，但也知道自己肩上扛着什么。工作中遇到没做过的任务，你会兴奋地学新东西，也会一步步啃下来。你愿意为在乎的人挺身而出，也愿意为更大的目标远航。你的勇敢不是一时冲动，而是深思熟虑后的担当。在朋友眼中，你是那个可以一起冒险、也可以托付后背的人。这样的你，注定要走出属于自己的航线，在海天之间写下独特的故事。"}, {"name": "爱莎", "era": "内敛", "role": "强大内心的冰雪女王", "tags": ["独立", "内敛", "强大"], "v": {"td": 90, "yq": 75, "cx": 65, "wr": 50, "lm": 55, "sw": 75}, "voice": "我不需要被所有人理解，我只要做自己。", "match": "你像爱莎一样，独立、内敛，却有一颗无比强大的心。你习惯自己扛下压力，不太轻易向人展示脆弱。面对突发状况你会冷静处理，面对不公你也会用自己的方式坚持立场。你不喜欢随波逐流，更愿意守住自己的原则和节奏。别人可能觉得你有点距离感，但真正走近你的人会明白，你的克制是因为在意，你的独立是因为担当。你不需要王子的拯救，因为你本身就是女王。这样的你，自带冰雪般的清冷与光芒，让人心生敬意。"}];
+var ELEMENTS=[{"key": "shu", "name": "书卷灵气", "desc": "对知识的好奇与内在思考的深度", "mix": {"cx": 0.8, "td": 0.2}}, {"key": "xia", "name": "侠气胆识", "desc": "面对不公时的勇气与挺身而出的担当", "mix": {"yq": 0.7, "td": 0.3}}, {"key": "lang", "name": "浪漫细胞", "desc": "对美的感知与梦幻优雅的向往", "mix": {"lm": 0.7, "wr": 0.3}}, {"key": "yan", "name": "烟火温暖", "desc": "日常中的温柔照顾与踏实经营", "mix": {"wr": 0.6, "sw": 0.4}}, {"key": "du", "name": "独立锋芒", "desc": "不随波逐流的主见与自我坚持", "mix": {"td": 0.8, "sw": 0.2}}];
+var MBTI_META={"on": false};
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+/* ---------- MBTI 专业模式：判型=维度计分确定性映射（不走向量匹配） ----
+   与 mbti_bank.py::judge_mbti 同逻辑，阈值改动必须两侧同步：
+   清晰对=分化度≥0.30；高阶=清晰对≥3 且最弱对≥0.10；初阶=清晰对≤1 或
+   最弱对<0.06；阶位=偏好清晰度档位（MBTI 框架内概念），类型始终由
+   四对计分的高分字母决定——机制上不可能偏离 MBTI 类型学。 */
+function mbtiJudge(scores){
+  var pairs=MBTI_META.pairs,code='',diffs=[];
+  pairs.forEach(function(p){
+    var sa=scores[p.a]||50,sb=scores[p.b]||50;
+    code+= sa>=sb? p.A : p.B;
+    diffs.push(Math.abs(sa-sb)/(sa+sb));
+  });
+  var clear=0;
+  diffs.forEach(function(d){ if(d>=0.30)clear++; });
+  var weakest=Math.min.apply(null,diffs);
+  var tier=(clear>=3&&weakest>=0.10)?'高阶':((clear<=1||weakest<0.06)?'初阶':'中阶');
+  return {code:code,tier:tier,diffs:diffs,pairs:pairs};
+}
+function axisRow(p,scores){
+  var sa=scores[p.a],sb=scores[p.b],tot=sa+sb;
+  var ra=Math.round(sa/tot*100),aLead=sa>=sb;
+  return '<div class="axis-row">'
+    +'<span class="axis-lab'+(aLead?' lead':'')+'">'+p.an+'</span>'
+    +'<div class="axis-track">'
+    +'<i class="axis-fill l'+(aLead?' lead':'')+'" data-w="'+ra+'"></i>'
+    +'<i class="axis-fill r" data-w="'+(100-ra)+'"></i>'
+    +'<span class="axis-mid"></span>'
+    +'<span class="axis-dot" data-x="'+ra+'"></span></div>'
+    +'<span class="axis-lab'+(!aLead?' lead':'')+'">'+p.bn+'</span>'
+    +'<span class="axis-val">'+ra+'%:'+(100-ra)+'%</span></div>';
+}
+function buildMbtiResultHTML(fig,mb,scores,elems,picks){
+  var tm=(MBTI_META.tierMeta&&MBTI_META.tierMeta[mb.tier])||{};
+  var axesHTML=mb.pairs.map(function(p){return axisRow(p,scores);}).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var funcsHTML='';
+  if(MBTI_META.level==='高'&&fig.funcs&&fig.funcs.length){
+    var caps=['主导功能','辅助功能','第三功能','劣势功能'];
+    funcsHTML='<div class="card"><div class="card-label">认 知 功 能 栈</div>'
+      +fig.funcs.map(function(f,i){
+        return '<div class="func-row"><span class="func-cap'+(i===0?' lead':'')+'">'+(caps[i]||'')+'</span>'
+          +'<span class="func-name">'+f+'</span></div>';
+      }).join('')+'</div>';
+  }
+  var why='四对维度计分：'+mb.pairs.map(function(p){
+      return p.an+' <b>'+scores[p.a]+' : '+scores[p.b]+'</b> '+p.bn;
+    }).join('；')+'——每对里高的一侧进入你的类型代码，这就是 <b>'+mb.code+'</b> 的由来。';
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">你 的 人 格 类 型</p>'
+    +'<div class="res-code">'+mb.code+'</div>'
+    +'<div><span class="tier-badge">'+(tm.badge||mb.tier)+'</span></div>'
+    +'<h2 class="res-name xl">'+(fig.era||fig.name)+'</h2>'
+    +'<p class="res-role">'+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">阶 位 解 读</div>'
+    +'<p class="tier-desc">'+(tm.desc||'')+'</p>'
+    +'<div class="hr"></div><p class="el-note">'+MBTI_META.level+'级测评 · '
+    +QUESTIONS.length+'题 · '+DIMS.length+'维迫选计分</p></div>'
+    +'<div class="card"><div class="card-label">四 维 倾 向 轴</div>'+axesHTML+'</div>'
+    +elsHTML
+    +funcsHTML
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 '+mb.code+'</div>'
+    +'<p class="explain">'+why+'<br><br>'+fig.match+'</p></div>'
+    +'<div class="disclaimer">类型描述认知偏好，无优劣之分；<br>阶位反映偏好的清晰程度，不是成熟度上限。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">公主鉴定所</p>';
+}
+function clipTxt(s,n){s=String(s);return s.length<=n?s:s.slice(0,n-1)+'…';}
+function calcElements(scores){
+  /* 核心考察元素满足度（2026-10-10 定稿）：每个元素 = mix 挂的计分维度按
+     权重线性组合。维度分本身在 18-99 归一量表上，组合值直接就是「做题人
+     对该元素的满足程度%」。不做 v/Σv 份额归一——归一维度分上各元素份额
+     结构性趋同（实测五个全 20%，零信息量，恰是用户点名的套路观感） */
+  if(!ELEMENTS||!ELEMENTS.length)return [];
+  var raw=ELEMENTS.map(function(e){
+    var s=0,w=0;
+    for(var k in e.mix){s+=(scores[k]||0)*e.mix[k];w+=e.mix[k];}
+    var v=w>0?s/w:0;
+    return {e:e,v:v,pct:Math.max(8,Math.min(97,Math.round(v)))};
+  });
+  raw.sort(function(a,b){return b.pct-a.pct;});
+  return raw;
+}
+function pickEvidence(elem,picks){
+  /* 证据题回指：做题人被选中的选项里，哪些恰好压在该元素 mix 最高的
+     计分维度上（权重≥2）——解读据此点名「第N题你选了…」，不再千篇一律 */
+  var dims=Object.keys(elem.mix).sort(function(a,b){return elem.mix[b]-elem.mix[a];});
+  var out=[];
+  picks.forEach(function(idx,qi){
+    if(idx==null)return;
+    var q=QUESTIONS[qi],o=q&&q.options[idx];
+    if(!o)return;
+    var hit=dims.some(function(d){return (o.s&&o.s[d]||0)>=2;});
+    if(hit)out.push({qi:qi,t:o.t});
+  });
+  return out;
+}
+function buildExplain(scores,fig,picks,elems){
+  var head;
+  if(elems&&elems.length){
+    var e1=elems[0].e,e2=elems.length>1?elems[1].e:null;
+    var ev=pickEvidence(e1,picks).slice(0,2);
+    var d1=String(e1.desc).replace(/[。．.]$/,'');
+    head='在这场测试里，你的选择最集中落在<b>「'+e1.name+'」（满足度 '+elems[0].pct+'%）</b>'
+      +(e2?'，其次是<b>「'+e2.name+'」（'+elems[1].pct+'%）</b>':'')
+      +'——'+d1+'。';
+    ev.forEach(function(x){
+      head+='第'+(x.qi+1)+'题你选了「'+clipTxt(x.t,16)+'」，正是「'+e1.name+'」在你身上的样子。';
+    });
+  }else{
+    var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+    var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+    head='你的'+DIMS.length+'维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>'
+      +(d2?'、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出':'最为突出')
+      +(d3?'，「'+d3.name+'」'+scores[d3.key]+' 分紧随其后':'')+'。'
+      +(d2?'在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+      +'第二步才用'+d2.name+'去收尾。':'');
+  }
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores,elems,picks){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  var dimLabel=(DIMS.length>=10?DIMS.length:'一二三四五六七八九'.charAt(DIMS.length-1))+' 维 倾 向';
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+      +'<h2 class="res-name'+((fig.name||'').length<=3?' xl':'')+'">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +elsHTML
+    +'<div class="card"><div class="card-label">'+dimLabel+'</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig,picks,elems)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">公主鉴定所</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill,.axis-fill');
+  var dots=document.querySelectorAll('.axis-dot');
+  fills.forEach(function(el){el.style.width='0%';});
+  dots.forEach(function(el){el.style.left='50%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+      dots.forEach(function(el){el.style.left=el.getAttribute('data-x')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var elems=calcElements(scores);
+  var res=document.getElementById('resultBody');
+  if(MBTI_META&&MBTI_META.on){
+    /* MBTI 模式：判型不走向量最近匹配——计分→四字母→按 name 直取 figure */
+    var mb=mbtiJudge(scores);
+    var fig=null;
+    for(var i=0;i<FIGURES.length;i++){ if(FIGURES[i].name===mb.code){fig=FIGURES[i];break;} }
+    if(!fig)fig=FIGURES[0];
+    res.innerHTML=buildMbtiResultHTML(fig,mb,scores,elems,picks);
+  }else{
+    var r=findMatch(scores);
+    res.innerHTML=buildResultHTML(r.fig,r.pct,scores,elems,picks);
+  }
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
