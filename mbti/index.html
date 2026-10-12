@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#0A1228" />
+<title>MBTI Personality Test</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#0A1228;
+    --card:#29334e;
+    --accent:#5B8DEF;
+    --accent-dim:#55658b;
+    --text:#E8EDF7;
+    --text-dim:#9AA8C4;
+    --line:#5B8DEF29;
+    --title-font:"Songti SC","STSong","Noto Serif SC",serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #5B8DEF2e, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #5B8DEF16, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #5B8DEF99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#ffffff12;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    /* 贴字实影层（10-12）：浅色主题下 CJK 抗锯齿把 5% 分位稀释到 ~97，
+       像素门 4.0 拦下（yinxiang 实测 239/90=2.6）。加 1px 近实心暗描边
+       让字形周边形成足够 ≤59 明度的覆盖；深色主题下黑影不可见，无副作用。 */
+    text-shadow:0 0 1px rgba(0,0,0,.75),0 1px 2px rgba(0,0,0,.6),0 2px 12px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#5B8DEF26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#0A1228e6 0%,#0A12288c 60%,#0A122859 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+  /* 结果页背景图：与答题页同构（z-index:-1 沉底 + 渐变纱压图不压字），
+     三图体系第三张——揭晓时刻的归宿角落；透明度更低：结果文字量大，
+     背景只做氛围（2026-10-10） */
+  .res-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .res-bg img{width:100%;height:100%;object-fit:cover;opacity:.30;}
+  .res-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#0A1228e6 0%,#0A12288c 55%,#0A122859 100%);}
+  #screen-result{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-name.xl{font-size:48px;letter-spacing:10px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#5B8DEF14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  /* 核心元素卡：元素名 2-5 字比维度名长，名区放宽；占比条与维度条共用骨架 */
+  .el-card .bar-name{flex-basis:60px;}
+  .el-note{font-size:11.5px;line-height:1.9;color:var(--text-dim);margin-top:12px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  /* ---------- MBTI 专业模式 ---------- */
+  .res-code{
+    font-family:var(--title-font);
+    font-size:54px;font-weight:700;line-height:1.1;letter-spacing:10px;
+    color:var(--accent);margin-top:8px;font-variant-numeric:tabular-nums;
+  }
+  .tier-badge{
+    display:inline-block;margin-top:14px;padding:5px 16px;border-radius:999px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:12.5px;letter-spacing:2px;
+  }
+  .axis-row{display:flex;align-items:center;gap:9px;margin:9px 0;}
+  .axis-lab{flex:0 0 30px;font-size:12px;color:var(--text-dim);text-align:center;letter-spacing:1px;}
+  .axis-lab.lead{color:var(--accent);font-weight:700;}
+  .axis-track{flex:1;height:7px;border-radius:7px;background:#ffffff12;position:relative;overflow:hidden;}
+  .axis-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--accent-dim);opacity:.55;z-index:2;}
+  /* 端部填充（从两侧边缘向内覆盖到占比位置）+ 滑块点：中间延伸式填充在
+     55-70% 常见区间只有百分之几宽，视觉几乎不可见（10-12 首跑目视打回） */
+  .axis-fill{position:absolute;top:0;height:100%;width:0;transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-fill.l{left:0;background:var(--accent-dim);opacity:.45;}
+  .axis-fill.l.lead{background:var(--accent);opacity:.85;}
+  .axis-fill.r{right:0;background:var(--accent-dim);opacity:.18;}
+  .axis-dot{position:absolute;top:50%;left:0;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#ffffff;box-shadow:0 0 6px var(--accent);z-index:3;transition:left .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-dot.edge{background:transparent;border:1px solid var(--text-dim);box-shadow:none;}
+  .axis-val.edge{opacity:.65;}
+  .axis-val em{font-style:normal;font-size:10px;color:var(--text-dim);margin-left:2px;}
+  .axis-val{flex:0 0 56px;text-align:right;font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .func-row{display:flex;align-items:center;gap:12px;margin:8px 0;}
+  .func-cap{flex:0 0 64px;font-size:11.5px;color:var(--text-dim);letter-spacing:1px;}
+  .func-cap.lead{color:var(--accent);font-weight:700;}
+  .func-name{font-size:14px;color:var(--text);}
+  .tier-desc{font-size:13.5px;line-height:2;color:var(--text);text-align:justify;}
+  /* 补充确认过渡屏（2026-10-12 自适应确认：边界维度追加题） */
+  .confirm-box{padding-top:130px;text-align:center;padding-left:26px;padding-right:26px;}
+  .confirm-eyebrow{font-size:12px;letter-spacing:5px;color:var(--accent);margin-bottom:22px;}
+  .confirm-title{font-family:var(--title-font);font-size:24px;line-height:1.6;color:var(--accent);font-weight:600;letter-spacing:2px;}
+  .confirm-desc{margin-top:20px;font-size:14px;line-height:2.1;color:var(--text);}
+  .confirm-desc b{color:var(--accent);}
+  .confirm-box .btn-primary{margin-top:26px;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#5B8DEF14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#5B8DEF14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">PERSONALITY TYPE ASSESSMENT</p>
+      <h1 class="cover-title">MBTI Personality Test</h1>
+      <p class="cover-sub">Four Dimensions · Forced-Choice<br>Clarity-Based Tiers</p>
+      <div class="cover-quote">Your type is a coordinate, not a destination.</div>
+      <div class="cover-meta"><span>共 20 题</span><i></i><span>约 4 分钟</span></div>
+      <button class="btn-primary" id="startBtn">开始测评</button>
+      <p class="cover-note">16 Types × Clarity Tiers · Standardized Scoring</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-confirm" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="confirm-box">
+      <p class="confirm-eyebrow">补 充 确 认</p>
+      <h2 class="confirm-title">有几个维度还在摇摆</h2>
+      <p class="confirm-desc" id="confirmDesc"></p>
+      <button class="btn-primary" id="confirmBtn">继续确认</button>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="res-bg"><img src="img/resbg.png" alt=""></div>
+    <div id="resultBody"></div>
+  </section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #5B8DEF99;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "e", "name": "外向"}, {"key": "i", "name": "内向"}, {"key": "s", "name": "实感"}, {"key": "n", "name": "直觉"}, {"key": "t", "name": "思考"}, {"key": "f", "name": "情感"}, {"key": "j", "name": "秩序"}, {"key": "p", "name": "即兴"}];
+[];
+var FIGURES=[{"name": "INTJ", "era": "建筑师", "role": "长线战略型大脑", "tags": ["远见", "独立", "高标准"], "v": {"e": 28, "i": 80, "s": 32, "n": 84, "t": 76, "f": 38, "j": 72, "p": 36}, "voice": "我不追赶风口，我提前站到风口将要经过的地方。", "match": "你的世界在脑子里先建成一遍，再落到现实施工。别人看你在发呆，其实你在推演五年后的格局——内倾直觉让你天然长于捕捉长期趋势和系统漏洞，外倾思维替你把蓝图拆成可执行的步骤。你的可靠不靠热情，靠标准：认定的事，你对自己的要求近乎苛刻。相应地，你对\"说得热闹却做不出结果\"的场合容忍度极低，也容易低估情绪在协作里的权重——不是不懂，是默认它不该干扰判断。往后的功课不是变得合群，而是让身边人跟上你的思路时，不必每次都先挨一记冷静的直球。", "funcs": ["内倾直觉 Ni", "外倾思维 Te", "内倾情感 Fi", "外倾感觉 Se"]}, {"name": "INTP", "era": "逻辑学家", "role": "原理拆解型思维", "tags": ["求真", "抽象", "好奇心"], "v": {"e": 30, "i": 82, "s": 34, "n": 82, "t": 84, "f": 36, "j": 38, "p": 70}, "voice": "先别急着用，我想知道它到底为什么是这样。", "match": "你享受的是\"想明白\"本身——内倾思维像一台永不关机的逻辑机床，任何结论到你手里都要拆开校验一遍才肯签收；外倾直觉又不断供给新角度，让你在同一个问题上能切换七八种框架。你是朋友圈里的\"人形说明书\"，什么冷门机制都能讲出原理。代价是你对\"差不多得了\"的交付节奏水土不服：分析可以无限深，deadline 却是有限的。你的成长不在变得更果断，而在给完美主义设一个止损点——把八成的思考密度，落到六成完成度的成品上，剩下的留给迭代。", "funcs": ["内倾思维 Ti", "外倾直觉 Ne", "内倾感觉 Si", "外倾情感 Fe"]}, {"name": "ENTJ", "era": "指挥官", "role": "目标驱动型统帅", "tags": ["果决", "统筹", "效率"], "v": {"e": 80, "i": 30, "s": 40, "n": 74, "t": 80, "f": 38, "j": 78, "p": 38}, "voice": "方向我来定，资源我来凑，跟不上的我不等。", "match": "你天生带着\"这事归我管\"的气场——外倾思维让你一眼扫出目标与资源之间的最短路径，内倾直觉负责把仗打到三年后的高地上去。混乱的局面反而让你兴奋，因为秩序正是你的产出物：分工、节点、复盘，一样样归位。你对自己狠，对身边人的标准也不自觉地往上提，一句\"这都做不到\"可能只是你的口头禅，落在别人耳朵里却是碾压。你的进阶方向是把\"人\"也当作要经营的长线资产——命令能换服从，唯有信任能换来死心塌地。", "funcs": ["外倾思维 Te", "内倾直觉 Ni", "外倾感觉 Se", "内倾情感 Fi"]}, {"name": "ENTP", "era": "辩论家", "role": "破局点子型引擎", "tags": ["机变", "犀利", "爱折腾"], "v": {"e": 78, "i": 32, "s": 36, "n": 84, "t": 78, "f": 42, "j": 36, "p": 76}, "voice": "规则是上一题的答案，不是这一题的。", "match": "你的快乐源泉是\"还有别的可能吗\"——外倾直觉让你的脑子永远在跨界连线，别人眼里的定论，在你眼里只是待拆的盲盒；内倾思维又保证你的脑洞多半站得住脚，于是你成了会议室里最难糊弄、也最让人兴奋的存在。你享受观点交锋甚于观点本身，赢了辩论输了感情的事大概没少干。你真正的坎不是想得不够，而是收尾：新鲜感的半衰期太短，烂尾的开头攒了一抽屉。找一个愿意陪你把点子焐热的执行搭档，是你性价比最高的自我升级。", "funcs": ["外倾直觉 Ne", "内倾思维 Ti", "外倾情感 Fe", "内倾感觉 Si"]}, {"name": "INFJ", "era": "提倡者", "role": "洞察人心型理想家", "tags": ["通透", "理想主义", "外柔内刚"], "v": {"e": 36, "i": 80, "s": 34, "n": 82, "t": 40, "f": 80, "j": 70, "p": 40}, "voice": "我看得到一个人自己都没说出口的那部分。", "match": "你习惯先看人再看事，而且常常看得太准——内倾直觉让你从只言片语里读出对方的真实处境，外倾情感又推着你悄悄把照顾做在别人开口之前。表面温和好说话，内核却是一套极难被动摇的原则：你可以妥协方式，绝不妥协意义。这份深度洞察的背面是消耗——你把太多人的课题背在自己身上，又用完美主义苛责自己的每一个\"没做好\"。你要练的不是共情，而是课题分离：别人的风暴不是你的欠款，先把自己的灯点亮。", "funcs": ["内倾直觉 Ni", "外倾情感 Fe", "内倾思维 Ti", "外倾感觉 Se"]}, {"name": "INFP", "era": "调停者", "role": "价值守护型诗人", "tags": ["赤诚", "共情", "内心戏足"], "v": {"e": 32, "i": 82, "s": 34, "n": 78, "t": 36, "f": 86, "j": 42, "p": 72}, "voice": "宁可不合群，也不肯对不起心里那点光。", "match": "你心里有一套不外显但寸土不让的价值坐标——内倾情感让你对\"这件事对不对\"的感知近乎生理反应，违背内心的事，给再多好处你也浑身别扭；外倾直觉则让你在文字、艺术和想象里如鱼得水，你的内心戏比很多人生大戏都精彩。你共情力惊人，却常常最后一个想到照顾自己；你厌恶冲突，于是把不满酿成内耗。你的功课是把\"不忍心\"换成\"有边界\"——拒绝不等于伤害，先对自己的感受诚实，才轮得到对世界温柔。", "funcs": ["内倾情感 Fi", "外倾直觉 Ne", "内倾感觉 Si", "外倾思维 Te"]}, {"name": "ENFJ", "era": "主人公", "role": "凝聚人心型领袖", "tags": ["感染力", "担当", "育人"], "v": {"e": 78, "i": 34, "s": 40, "n": 74, "t": 40, "f": 84, "j": 72, "p": 42}, "voice": "你变好这件事，我看得到，也等得到。", "match": "你是天生的\"人磁\"——外倾情感让你实时感知场子里每个人的温度，谁被冷落、谁需要被看见，你的雷达从不失灵；内倾直觉又让你擅长把个人成长放进更长的故事线里讲，于是你说话总有一种\"跟你走\"的号召力。你真心为别人的进步高兴，也习惯了把集体的情绪扛在自己肩上。可情绪劳动是有账单的：你累到极点时反而更卖力地照顾所有人。学会把\"我没事\"换成\"我今天需要休息\"，你的温暖才可持续。", "funcs": ["外倾情感 Fe", "内倾直觉 Ni", "外倾感觉 Se", "内倾情感 Fi"]}, {"name": "ENFP", "era": "竞选者", "role": "可能性联结型火花", "tags": ["热忱", "脑洞", "人格磁场"], "v": {"e": 80, "i": 32, "s": 36, "n": 84, "t": 38, "f": 78, "j": 38, "p": 78}, "voice": "人生这么短，怎么可能只活一种活法。", "match": "你走到哪里，哪里的空气就活起来——外倾直觉让你对一切新鲜可能保持孩童式兴奋，三分钟就能和陌生人聊成老友；内倾情感给你的热情装了一颗真诚的芯子：你在乎的不是热闹，是人和人之间真实的火花。你的朋友圈大概率横跨七八个圈子。但起跑太猛的代价是续航：计划表对你像束身衣，收尾永远没有开头性感。你不需要变成自律机器，只需要给热情装一个极简的落点——把最想成的那一件事，推进到能被别人看见为止。", "funcs": ["外倾直觉 Ne", "内倾情感 Fi", "外倾思维 Te", "内倾感觉 Si"]}, {"name": "ISTJ", "era": "物流师", "role": "可靠流程型基石", "tags": ["靠谱", "严谨", "责任心"], "v": {"e": 34, "i": 78, "s": 82, "n": 32, "t": 76, "f": 40, "j": 84, "p": 32}, "voice": "答应过的东西，一个标点都不会少。", "match": "你是那种\"在，且一直会在\"的人——内倾感觉让你把经验、承诺和流程存成长期可靠的档案库，五年前说过的话你都对得上账；外倾思维让你按客观标准一丝不苟地交付。团队里最不起眼却最不可或缺的就是你：别人追新概念，你守基本盘，出岔子的永远是别人那摊。你的克制是美德也是茧房——对非常规方案的警惕，有时会让你错过值得赌一次的变化。偶尔把\"以前都是这么做\"换成\"这次要不要试试\"，你的稳会变得更值钱。", "funcs": ["内倾感觉 Si", "外倾思维 Te", "内倾情感 Fi", "外倾直觉 Ne"]}, {"name": "ISFJ", "era": "守卫者", "role": "默默托底型暖流", "tags": ["细致", "体贴", "长情"], "v": {"e": 36, "i": 78, "s": 80, "n": 34, "t": 38, "f": 84, "j": 80, "p": 36}, "voice": "我记得你不吃香菜，也记得你随口提过的心愿。", "match": "你的爱藏在细节里——内倾感觉让你对在意之人的偏好、习惯、忌口如数家珍，外倾情感推着你把照顾织进日常：谁都没注意的缺口，你悄悄补上了。你不争功，甚至被感谢时会手足无措。这份体贴的阴影是委屈：你记得所有人的需求，却习惯性把自己的排到最后，等到攒不住了又责怪自己\"怎么这点事都计较\"。你的功课是理直气壮地提要求——被你照顾过的人，其实一直等着一个回报你的机会。", "funcs": ["内倾感觉 Si", "外倾情感 Fe", "内倾思维 Ti", "外倾直觉 Ne"]}, {"name": "ESTJ", "era": "总经理", "role": "秩序执行型中枢", "tags": ["实干", "条理", "担当"], "v": {"e": 80, "i": 32, "s": 78, "n": 36, "t": 80, "f": 42, "j": 82, "p": 34}, "voice": "别讨论了，先干起来，问题边干边解决。", "match": "你是天然的执行中枢——外倾思维让你对目标、节点、责任边界极度敏感，内倾感觉提供经过验证的方法库，于是再乱的局面到你手里都会变成一张有人名有日期的作战表。你看重规则，因为规则是对大多数人公平的那条路。你的直来直去节省了沟通成本，也常常跳过了别人的情绪缓冲区——\"对事不对人\"在你这里是事实，在对方那里未必。把\"照我说的做\"升级成\"跟我这样做\"，你的组织力会从令人信服变成令人追随。", "funcs": ["外倾思维 Te", "内倾感觉 Si", "外倾直觉 Ne", "内倾情感 Fi"]}, {"name": "ESFJ", "era": "执政官", "role": "氛围营造型纽带", "tags": ["周到", "热络", "利他"], "v": {"e": 82, "i": 34, "s": 78, "n": 36, "t": 38, "f": 86, "j": 80, "p": 38}, "voice": "大家都吃好了玩好了，这顿饭才算成了。", "match": "你是聚会里天然的东道主——外倾情感让你实时追踪每个人的需求，冷场是你最先出手化解的敌人；内倾感觉让你记得每个人的喜好禁忌，安排永远落到最舒服的细节上。家庭、社群、办公室，有你在的地方就有\"被组织起来的温度\"。你的软肋是把自我价值过多押在别人的反馈上：一句无心的话能让你反刍一整晚。要记得，你先是你自己，然后才是所有人的纽带——留一点只为自己高兴的时光，那不是自私，是续航。", "funcs": ["外倾情感 Fe", "内倾感觉 Si", "外倾直觉 Ne", "内倾思维 Ti"]}, {"name": "ISTP", "era": "鉴赏家", "role": "冷静排障型巧手", "tags": ["淡定", "动手力", "临场"], "v": {"e": 36, "i": 80, "s": 80, "n": 40, "t": 80, "f": 34, "j": 38, "p": 80}, "voice": "先别慌，让我看一眼——哦，问题在这。", "match": "你是人群里的\"故障终结者\"——内倾思维让你习惯先拆原理再动手，外倾感觉给你一双稳定的手和临场不乱的心跳，机器、路线、突发状况，到你这里都会被冷静地拆成一个个可解的小问题。你不爱表态，也不爱解释，语言在你这里是低效接口。这份酷的代价是亲近之人的\"读不懂\"：你以为的默契，对方感受到的是疏离。你不需要变得健谈，只需要在关键时刻把\"我知道了\"换成\"我在，你说\"——你的沉默很贵，别让它看着像冷淡。", "funcs": ["内倾思维 Ti", "外倾感觉 Se", "内倾直觉 Ni", "外倾情感 Fe"]}, {"name": "ISFP", "era": "探险家", "role": "审美当下型生活家", "tags": ["细腻", "随性", "好品味"], "v": {"e": 34, "i": 80, "s": 80, "n": 38, "t": 34, "f": 84, "j": 36, "p": 82}, "voice": "不急着去哪，先把眼前的光看完。", "match": "你对世界的感受是高清的——外倾感觉让你活在当下这一帧的光线、气味和质感里，内倾情感又给每一帧染上只属于你的意义，于是你的穿搭、你挑的店、你拍的照片总有种说不出的对味。你温和，却极有主意：可以迁就形式，绝不迁就审美和底线。你怕冲突也怕被安排，长远规划四个字让你透不过气。但喜欢的生活是要底盘的——把一两件真正重要的事守住节奏，其余继续随风，你的自由才有处安放。", "funcs": ["内倾情感 Fi", "外倾感觉 Se", "内倾直觉 Ni", "外倾思维 Te"]}, {"name": "ESTP", "era": "企业家", "role": "行动破局型猛将", "tags": ["雷厉风行", "胆识", "现场感"], "v": {"e": 82, "i": 32, "s": 82, "n": 36, "t": 78, "f": 40, "j": 36, "p": 84}, "voice": "想好了？不，是干着干着就想明白了。", "match": "你是天生的现场型选手——外倾感觉让你对环境信息零延迟反应，别人还在评估风险，你已经试完一轮拿到真实反馈；内倾思维让你在实战中快速迭代打法。谈判桌、竞技场、突发状况，越是压力现场你越闪亮。你的字典里没有\"内耗\"，只有\"下一个\"。这份果决的盲区在长线：重复、枯燥、需要深耕的阶段会迅速抽干你的兴趣，容易赢了冲刺输了马拉松。给自己配一个能沉住气的军师，并学会听他们把话说完——这不束缚你，这是给油门装方向盘。", "funcs": ["外倾感觉 Se", "内倾思维 Ti", "外倾情感 Fe", "内倾直觉 Ni"]}, {"name": "ESFP", "era": "表演者", "role": "现场点燃型明星", "tags": ["鲜活", "慷慨", "感染力"], "v": {"e": 84, "i": 32, "s": 82, "n": 34, "t": 36, "f": 80, "j": 34, "p": 84}, "voice": "快乐这个东西，我现场发，不搞预售。", "match": "你在的地方，气氛自带滤镜——外倾感觉让你对声光、节奏、人群的情绪起伏极度敏锐，即兴的段子、恰到好处的暖场信手拈来；内倾情感让你所有的热闹都发乎真心，你不是在表演，是把生命力借给这个场子。你慷慨到把最好的都先给别人。风险也在同一处：你对\"此时此刻\"的爱太满，延迟满足对你像酷刑，账单和规划总在追着你跑。把\"今朝有酒今朝醉\"升级成\"今朝的酒今朝酿\"，你的光就不仅能点亮场子，还能存进罐子里。", "funcs": ["外倾感觉 Se", "内倾情感 Fi", "外倾思维 Te", "内倾直觉 Ni"]}];
+var ELEMENTS=[{"key": "shjn", "name": "社交能量场", "desc": "你在人群与独处之间的能量流向与续航", "mix": {"e": 0.8, "p": 0.2}}, {"key": "ldsg", "name": "落地实干力", "desc": "把想法落到具体事实与步骤里的能力", "mix": {"s": 0.7, "j": 0.3}}, {"key": "dcqy", "name": "洞察前瞻力", "desc": "从信息里读出趋势与可能性的敏感度", "mix": {"n": 0.7, "p": 0.3}}, {"key": "lxjd", "name": "理性决断力", "desc": "用逻辑权衡利弊做取舍的稳定程度", "mix": {"t": 0.7, "s": 0.3}}, {"key": "gqgr", "name": "共情感染力", "desc": "感知他人情绪并建立联结的温度", "mix": {"f": 0.7, "e": 0.3}}];
+var MBTI_META={"on": true, "level": "中", "tierMeta": {"初": {"badge": "清晰度 · 初｜偏好形成中", "desc": "你有不止一对维度的作答落在边界带——不是测不准，而是若干偏好仍在形成期。类型代码给出的是此刻的倾向，换一个人生阶段重测，边界处的字母有换边的可能。官方测评对这类结果同样标注「偏好不明晰」。"}, "中": {"badge": "清晰度 · 中｜偏好清晰", "desc": "你的多数维度偏好已经清晰稳定，个别维度仍留有弹性空间——这是最常见也最健康的分布：类型框架立得住，又不至于把人钉死。"}, "高": {"badge": "清晰度 · 高｜偏好成型且整合", "desc": "四对维度的作答一致性都很高——偏好不仅成型，你大概率已经学会带着自己的类型去补短板，而非被类型锁死。清晰度描述的是作答的稳定程度，不是人格的高度。"}}, "pairs": [{"a": "e", "b": "i", "A": "E", "B": "I", "an": "外向", "bn": "内向"}, {"a": "s", "b": "n", "A": "S", "B": "N", "an": "实感", "bn": "直觉"}, {"a": "t", "b": "f", "A": "T", "B": "F", "an": "思考", "bn": "情感"}, {"a": "j", "b": "p", "A": "J", "B": "P", "an": "秩序", "bn": "即兴"}]};
+var MBTI_BANK={"pool": [{"t": "走进一个全是陌生人的场合，你通常会？", "o": [{"t": "主动搭话，很快认识几个人", "s": {"e": 3}}, {"t": "安静观察，等别人来找我", "s": {"i": 3}}], "pair": "EI", "facet": 1, "pos": "A"}, {"t": "电梯里遇到不熟的同事，三十秒的你更像？", "o": [{"t": "盯着楼层数字，希望没人开口", "s": {"i": 3}}, {"t": "自然搭话，三十秒也能聊出下文", "s": {"e": 3}}], "pair": "EI", "facet": 1, "pos": "C"}, {"t": "刚搬到一座新城市的第一周，你更可能？", "o": [{"t": "主动加本地群约饭，先认识一批人", "s": {"e": 3}}, {"t": "先摸清周边的咖啡馆和散步路线", "s": {"i": 3}}], "pair": "EI", "facet": 1, "pos": "A"}, {"t": "进入一个新群聊，你通常是？", "o": [{"t": "潜水居多，有人@再看", "s": {"i": 3}}, {"t": "先冒个泡自我介绍破冰", "s": {"e": 3}}], "pair": "EI", "facet": 1, "pos": "C"}, {"t": "遇到特别开心的事，你的第一反应是？", "o": [{"t": "马上找人分享，不说出来浑身难受", "s": {"e": 3}}, {"t": "先自己回味一会儿，想好了再告诉别人", "s": {"i": 3}}], "pair": "EI", "facet": 2, "pos": "A"}, {"t": "你更习惯哪种把想法变成语言的方式？", "o": [{"t": "想清楚了再开口，写下来比说出来顺", "s": {"i": 3}}, {"t": "边说边想，说着说着思路就理顺了", "s": {"e": 3}}], "pair": "EI", "facet": 2, "pos": "C"}, {"t": "你的情绪状态，旁人通常？", "o": [{"t": "一眼就能看出来，全写在脸上", "s": {"e": 3}}, {"t": "不太容易看出来，藏得住", "s": {"i": 3}}], "pair": "EI", "facet": 2, "pos": "A"}, {"t": "开会时听到不同意见，你更倾向？", "o": [{"t": "心里先翻涌，缓一缓再表态", "s": {"i": 3}}, {"t": "当场就把想法说出来", "s": {"e": 3}}], "pair": "EI", "facet": 2, "pos": "C"}, {"t": "你更喜欢的聚会形态是？", "o": [{"t": "人多热闹，来的人越多越精神", "s": {"e": 3}}, {"t": "三五好友小聚，聊得深才算数", "s": {"i": 3}}], "pair": "EI", "facet": 3, "pos": "A"}, {"t": "旅途中结识的新朋友提议结伴同游几天，你会？", "o": [{"t": "婉拒居多，一个人走更自在随性", "s": {"i": 3}}, {"t": "一拍即合，旅伴本身就是惊喜", "s": {"e": 3}}], "pair": "EI", "facet": 3, "pos": "C"}, {"t": "你通讯录里的好友更像？", "o": [{"t": "跨度很大，七八个圈子都有人", "s": {"e": 3}}, {"t": "就那几个核心圈子，但都很铁", "s": {"i": 3}}], "pair": "EI", "facet": 3, "pos": "A"}, {"t": "聚会散场时，你新交换到的联系方式通常是？", "o": [{"t": "没几个，聊得来的本来就少", "s": {"i": 3}}, {"t": "好几个，认识新朋友很愉快", "s": {"e": 3}}], "pair": "EI", "facet": 3, "pos": "C"}, {"t": "忙碌了一整周，周五晚上你更想？", "o": [{"t": "出门动起来，人多的地方越待越精神", "s": {"e": 3}}, {"t": "一个人待着，安安静静把电充回来", "s": {"i": 3}}], "pair": "EI", "facet": 4, "pos": "A"}, {"t": "大型聚会进行到第三小时，你的状态曲线更像？", "o": [{"t": "电池见底，笑容开始需要刻意维持", "s": {"i": 3}}, {"t": "越聊越上头，正是渐入佳境的时候", "s": {"e": 3}}], "pair": "EI", "facet": 4, "pos": "C"}, {"t": "独自待了完整三天没有任何社交，你的感受是？", "o": [{"t": "憋坏了，必须马上投身人群", "s": {"e": 3}}, {"t": "平静充盈，只是有点想见人", "s": {"i": 3}}], "pair": "EI", "facet": 4, "pos": "A"}, {"t": "回想你「状态最好、灵感最密集」的时刻，多发生在？", "o": [{"t": "一个人的深夜或清晨，安静里出活", "s": {"i": 3}}, {"t": "和人碰撞的现场，越聊越有想法", "s": {"e": 3}}], "pair": "EI", "facet": 4, "pos": "C"}, {"t": "手机里的群消息响个不停时，你的感受更接近？", "o": [{"t": "热闹，有参与感，顺手就聊起来了", "s": {"e": 3}}, {"t": "想静音，一条条回复是种消耗", "s": {"i": 3}}], "pair": "EI", "facet": 5, "pos": "A"}, {"t": "连续高强度的社交两天之后，你更接近哪种状态？", "o": [{"t": "意外地亢奋，好状态被彻底点燃了", "s": {"i": 3}}, {"t": "电量见底，需要独处很久才缓过来", "s": {"e": 3}}], "pair": "EI", "facet": 5, "pos": "C"}, {"t": "深夜接到好友的电话倾诉，你的真实心态是？", "o": [{"t": "瞬间清醒，陪着聊到对方想通为止", "s": {"e": 3}}, {"t": "心疼归心疼，夜深了确实有点耗", "s": {"i": 3}}], "pair": "EI", "facet": 5, "pos": "A"}, {"t": "马拉松式的大会开到中场休息，你通常会？", "o": [{"t": "出去透风，独处几分钟回回神", "s": {"i": 3}}, {"t": "抓住机会和邻座继续聊刚才的话题", "s": {"e": 3}}], "pair": "EI", "facet": 5, "pos": "C"}, {"t": "读一份新材料的时候，你更容易先记住的是？", "o": [{"t": "具体的数据、案例和操作细节", "s": {"s": 3}}, {"t": "它背后的含义、走向和言外之意", "s": {"n": 3}}], "pair": "SN", "facet": 1, "pos": "A"}, {"t": "别人给你讲一件事，你更在意？", "o": [{"t": "这事整体说明了一个什么问题", "s": {"n": 3}}, {"t": "经过是否讲得通，细节对不对得上", "s": {"s": 3}}], "pair": "SN", "facet": 1, "pos": "C"}, {"t": "朋友给你安利一部电影，哪种介绍更对你的胃口？", "o": [{"t": "按时间线把情节给你捋清楚", "s": {"s": 3}}, {"t": "聊聊它的主题隐喻和导演想说什么", "s": {"n": 3}}], "pair": "SN", "facet": 1, "pos": "A"}, {"t": "写总结或汇报时，你的习惯是？", "o": [{"t": "先搭意义和框架，再填素材", "s": {"n": 3}}, {"t": "把事实和过程列全，结论放最后", "s": {"s": 3}}], "pair": "SN", "facet": 1, "pos": "C"}, {"t": "布置新家的时候，让你更兴奋的是？", "o": [{"t": "把每件家具的尺寸材质落到实处", "s": {"s": 3}}, {"t": "想象十年后这个空间里的生活图景", "s": {"n": 3}}], "pair": "SN", "facet": 2, "pos": "A"}, {"t": "提起童年夏天，你脑海里先浮上来的是？", "o": [{"t": "那段日子整体的光线和氛围", "s": {"n": 3}}, {"t": "某个具体午后的蝉鸣、凉席和西瓜味", "s": {"s": 3}}], "pair": "SN", "facet": 2, "pos": "C"}, {"t": "逛一座陌生城市，你更容易被什么勾住？", "o": [{"t": "街角小店的烟火气和具体的好吃的", "s": {"s": 3}}, {"t": "这座城市的前世今生和它的气质", "s": {"n": 3}}], "pair": "SN", "facet": 2, "pos": "A"}, {"t": "朋友描述一个计划时，你脑子里通常会？", "o": [{"t": "自动放起电影，画面感先跑起来", "s": {"n": 3}}, {"t": "先核对时间地点和可行性", "s": {"s": 3}}], "pair": "SN", "facet": 2, "pos": "C"}, {"t": "上手一项新技能，你偏好的路径是？", "o": [{"t": "按步骤一步步来，先跑通再改进", "s": {"s": 3}}, {"t": "先看全局原理，自己倒推玩法", "s": {"n": 3}}], "pair": "SN", "facet": 3, "pos": "A"}, {"t": "学习一门新知识，你的顺序更像？", "o": [{"t": "先搭理论框架，再往里填案例", "s": {"n": 3}}, {"t": "从具体例子入手，归纳出规律", "s": {"s": 3}}], "pair": "SN", "facet": 3, "pos": "C"}, {"t": "上司丢来一句方向模糊的任务，你会？", "o": [{"t": "追问清楚标准、边界和交付物", "s": {"s": 3}}, {"t": "自己脑补出几种可能挑一个先干", "s": {"n": 3}}], "pair": "SN", "facet": 3, "pos": "A"}, {"t": "开会时有人说「我有个大胆的想法」，你的内心是？", "o": [{"t": "眼睛一亮：快说，就爱听这个", "s": {"n": 3}}, {"t": "先问可行性和资源，落地要紧", "s": {"s": 3}}], "pair": "SN", "facet": 3, "pos": "C"}, {"t": "做判断时你更信赖哪种依据？", "o": [{"t": "亲历过、验证过的经验", "s": {"s": 3}}, {"t": "突如其来的预感和画面感", "s": {"n": 3}}], "pair": "SN", "facet": 4, "pos": "A"}, {"t": "两条推送同时出现，你会先点开哪个？", "o": [{"t": "讲行业趋势和未来走向的深度分析", "s": {"n": 3}}, {"t": "数据翔实的实地调查报道", "s": {"s": 3}}], "pair": "SN", "facet": 4, "pos": "C"}, {"t": "买大件之前，你的功课方式是？", "o": [{"t": "看实物、跑门店、上手试", "s": {"s": 3}}, {"t": "研究参数原理和测评方法论", "s": {"n": 3}}], "pair": "SN", "facet": 4, "pos": "A"}, {"t": "同事分享工作心得，更打动你的是？", "o": [{"t": "一套能解释很多现象的框架", "s": {"n": 3}}, {"t": "他踩过的坑和实操细节", "s": {"s": 3}}], "pair": "SN", "facet": 4, "pos": "C"}, {"t": "组织朋友聚会，你更倾向？", "o": [{"t": "熟门熟路的老地方老玩法，稳", "s": {"s": 3}}, {"t": "没试过的新形式新地点，有趣", "s": {"n": 3}}], "pair": "SN", "facet": 5, "pos": "A"}, {"t": "你做笔记的风格更接近？", "o": [{"t": "关键词、箭头、思维导图式发散", "s": {"n": 3}}, {"t": "编号分层的清单，一条条记全", "s": {"s": 3}}], "pair": "SN", "facet": 5, "pos": "C"}, {"t": "一道菜做得好吃，你更想？", "o": [{"t": "照着验证过的方子复刻到位", "s": {"s": 3}}, {"t": "改配方玩融合，试出新版本", "s": {"n": 3}}], "pair": "SN", "facet": 5, "pos": "A"}, {"t": "你的穿衣和审美路线更像？", "o": [{"t": "自己琢磨出的独特路数", "s": {"n": 3}}, {"t": "经典耐看的成熟搭配", "s": {"s": 3}}], "pair": "SN", "facet": 5, "pos": "C"}, {"t": "朋友的项目搞砸了来找你，你的第一动作是？", "o": [{"t": "帮他把出错的环节捋一遍", "s": {"t": 3}}, {"t": "先接住情绪，让他缓一缓再说", "s": {"f": 3}}], "pair": "TF", "facet": 1, "pos": "A"}, {"t": "家人说想辞掉稳定工作去追梦，你第一句会问？", "o": [{"t": "「这是你真心想要的吗？」", "s": {"f": 3}}, {"t": "「算过账吗，能撑多久？」", "s": {"t": 3}}], "pair": "TF", "facet": 1, "pos": "C"}, {"t": "朋友拿着两个 offer 来问你选哪个，你会？", "o": [{"t": "拉一张利弊对照表逐项分析", "s": {"t": 3}}, {"t": "先问他哪种生活是他真正想要的", "s": {"f": 3}}], "pair": "TF", "facet": 1, "pos": "A"}, {"t": "看到一则公益募捐，真正让你掏钱的是？", "o": [{"t": "那个故事本身，看到就是缘由", "s": {"f": 3}}, {"t": "项目执行得透明、款物去向清楚", "s": {"t": 3}}], "pair": "TF", "facet": 1, "pos": "C"}, {"t": "热点话题吵翻了天，你的第一反应是？", "o": [{"t": "看双方的论据是否站得住脚", "s": {"t": 3}}, {"t": "共情当事人的处境和感受", "s": {"f": 3}}], "pair": "TF", "facet": 2, "pos": "A"}, {"t": "评价一道菜好不好，你更可能说？", "o": [{"t": "「这道菜让我想起外婆家的味道」", "s": {"f": 3}}, {"t": "「火候过了，盐重了半分」", "s": {"t": 3}}], "pair": "TF", "facet": 2, "pos": "C"}, {"t": "团队里两个人争执不下，你的第一反应是？", "o": [{"t": "直接评判哪个方案本身更优", "s": {"t": 3}}, {"t": "先把气氛捋顺，人都僵着谈不出结果", "s": {"f": 3}}], "pair": "TF", "facet": 2, "pos": "A"}, {"t": "朋友被上司批评了来吐槽，你的回应更接近？", "o": [{"t": "「冷静讲，这事里有没有你的问题」", "s": {"f": 3}}, {"t": "「他这么说你，你肯定很难受吧」", "s": {"t": 3}}], "pair": "TF", "facet": 2, "pos": "C"}, {"t": "必须拒绝一个人时，你更纠结的是？", "o": [{"t": "怎么把理由说得让他服气", "s": {"t": 3}}, {"t": "怎么开口才不让他难受", "s": {"f": 3}}], "pair": "TF", "facet": 3, "pos": "A"}, {"t": "对网上流传的说法，你的默认姿态是？", "o": [{"t": "先信为敬，除非明显离谱", "s": {"f": 3}}, {"t": "先打个问号，查证了再说", "s": {"t": 3}}], "pair": "TF", "facet": 3, "pos": "C"}, {"t": "朋友的新想法在你看来有漏洞，你会？", "o": [{"t": "当场把漏洞指出来", "s": {"t": 3}}, {"t": "先肯定创意，看他自己会不会发现", "s": {"f": 3}}], "pair": "TF", "facet": 3, "pos": "A"}, {"t": "群里的决定你不太认同，你通常？", "o": [{"t": "算了，就跟着大家的决定走", "s": {"f": 3}}, {"t": "该说说，对事不对人", "s": {"t": 3}}], "pair": "TF", "facet": 3, "pos": "C"}, {"t": "对人对事，你更习惯的第一反应是？", "o": [{"t": "先看到可圈可点之处", "s": {"t": 3}}, {"t": "先看到可以改进之处", "s": {"f": 3}}], "pair": "TF", "facet": 4, "pos": "A"}, {"t": "看完一部人人叫好的作品，你更倾向？", "o": [{"t": "挑出它配不上的地方", "s": {"f": 3}}, {"t": "理解它为什么打动人", "s": {"t": 3}}], "pair": "TF", "facet": 4, "pos": "C"}, {"t": "同事的失误拖累了进度，你更接近？", "o": [{"t": "先关心他是不是遇到什么难处", "s": {"t": 3}}, {"t": "直接指出问题出在哪一环", "s": {"f": 3}}], "pair": "TF", "facet": 4, "pos": "A"}, {"t": "伴侣做饭不太成功但很用心，你说？", "o": [{"t": "「好吃！心意最大」", "s": {"f": 3}}, {"t": "「谢谢心意，但咱们换回上次那道吧」", "s": {"t": 3}}], "pair": "TF", "facet": 4, "pos": "C"}, {"t": "给好友挑生日礼物，你更看重？", "o": [{"t": "他拆开那一刻会不会被击中", "s": {"t": 3}}, {"t": "实用性和性价比，好用才是硬道理", "s": {"f": 3}}], "pair": "TF", "facet": 5, "pos": "A"}, {"t": "相亲对象各方面条件都合适但你没感觉，你？", "o": [{"t": "条件是硬指标，感觉可以慢慢培养", "s": {"f": 3}}, {"t": "没感觉一切免谈，不骗自己", "s": {"t": 3}}], "pair": "TF", "facet": 5, "pos": "C"}, {"t": "影视作品里最戳你的是？", "o": [{"t": "人物的命运和情感", "s": {"t": 3}}, {"t": "情节的精巧与逻辑自洽", "s": {"f": 3}}], "pair": "TF", "facet": 5, "pos": "A"}, {"t": "十年后的同学重逢，你开口先聊的是？", "o": [{"t": "「现在做什么、住哪、什么打算」", "s": {"f": 3}}, {"t": "「你还是当年的感觉，一点没变」", "s": {"t": 3}}], "pair": "TF", "facet": 5, "pos": "C"}, {"t": "你的桌面和房间的常态是？", "o": [{"t": "物归其位，整齐是刚需", "s": {"j": 3}}, {"t": "乱中有序，自成一套生态系统", "s": {"p": 3}}], "pair": "JP", "facet": 1, "pos": "A"}, {"t": "你的待办事项通常活在？", "o": [{"t": "脑子里，大概有个数就够了", "s": {"p": 3}}, {"t": "清单或日历里，记全了才安心", "s": {"j": 3}}], "pair": "JP", "facet": 1, "pos": "C"}, {"t": "你的相册、文件夹和收藏夹？", "o": [{"t": "分类清晰，定期整理归档", "s": {"j": 3}}, {"t": "按时间流堆着，要找时再搜", "s": {"p": 3}}], "pair": "JP", "facet": 1, "pos": "A"}, {"t": "你手机的主屏和通知？", "o": [{"t": "红点随它去，不影响使用", "s": {"p": 3}}, {"t": "必须清掉红点、分好组", "s": {"j": 3}}], "pair": "JP", "facet": 1, "pos": "C"}, {"t": "出发去旅行之前，你更接近？", "o": [{"t": "行程精确到时段和餐厅", "s": {"j": 3}}, {"t": "订好首晚住宿就出发", "s": {"p": 3}}], "pair": "JP", "facet": 2, "pos": "A"}, {"t": "和朋友约饭，你通常扮演的角色是？", "o": [{"t": "「今晚吃啥都行」的随缘派", "s": {"p": 3}}, {"t": "提前几天定好时间地点的人", "s": {"j": 3}}], "pair": "JP", "facet": 2, "pos": "C"}, {"t": "长假第一天早上醒来，你的状态是？", "o": [{"t": "这几天怎么分配已经想好了", "s": {"j": 3}}, {"t": "先赖床，想到哪出是哪", "s": {"p": 3}}], "pair": "JP", "facet": 2, "pos": "A"}, {"t": "购物时遇到心动但不在清单里的东西？", "o": [{"t": "顺手拿下，计划外才有惊喜", "s": {"p": 3}}, {"t": "按计划买完就走，下次再说", "s": {"j": 3}}], "pair": "JP", "facet": 2, "pos": "C"}, {"t": "离截止日还有两周，你的节奏是？", "o": [{"t": "提前做完，最后几天只做检查", "s": {"j": 3}}, {"t": "最后一周爆发，前一周养精蓄锐", "s": {"p": 3}}], "pair": "JP", "facet": 3, "pos": "A"}, {"t": "准备一件重要的事，你通常？", "o": [{"t": "拖到临近才进入状态", "s": {"p": 3}}, {"t": "早早开始，留足缓冲", "s": {"j": 3}}], "pair": "JP", "facet": 3, "pos": "C"}, {"t": "周末有正事要办，你会？", "o": [{"t": "周五晚上就先把它清掉", "s": {"j": 3}}, {"t": "周日晚上效率最高", "s": {"p": 3}}], "pair": "JP", "facet": 3, "pos": "A"}, {"t": "旅行前一晚，你的行李箱状态？", "o": [{"t": "还没开始收，明早再说", "s": {"p": 3}}, {"t": "早就收得七七八八", "s": {"j": 3}}], "pair": "JP", "facet": 3, "pos": "C"}, {"t": "计划好的野餐当天下起雨，你会？", "o": [{"t": "立刻启动备选方案，改期或转场", "s": {"j": 3}}, {"t": "顺势改成雨天室内局，也挺好", "s": {"p": 3}}], "pair": "JP", "facet": 4, "pos": "A"}, {"t": "朋友问「下周六有空吗」，你的回答多是？", "o": [{"t": "「到时候看情况，提前一天问我」", "s": {"p": 3}}, {"t": "当场翻日历给出准话", "s": {"j": 3}}], "pair": "JP", "facet": 4, "pos": "C"}, {"t": "说好的安排突然被临时变更，你？", "o": [{"t": "心里咯噔一下，需要重新适应", "s": {"j": 3}}, {"t": "好啊，换换口味也蛮新鲜", "s": {"p": 3}}], "pair": "JP", "facet": 4, "pos": "A"}, {"t": "一天的时间安排，你更喜欢？", "o": [{"t": "跟着感觉流动，想起来什么做什么", "s": {"p": 3}}, {"t": "有时间块概念，几点干什么心里有谱", "s": {"j": 3}}], "pair": "JP", "facet": 4, "pos": "C"}, {"t": "方案定了，执行中发现更优解，你？", "o": [{"t": "先按定的来，变更要走流程", "s": {"j": 3}}, {"t": "果断切换，方案服务于结果", "s": {"p": 3}}], "pair": "JP", "facet": 5, "pos": "A"}, {"t": "工作中你更舒服的收尾方式是？", "o": [{"t": "留个开放的口子，灵感来了续上", "s": {"p": 3}}, {"t": "阶段成果必须闭环，才能安心开下一个", "s": {"j": 3}}], "pair": "JP", "facet": 5, "pos": "C"}, {"t": "「先定下来」和「再看看」，哪句更常挂你嘴边？", "o": [{"t": "「先定下来，定了我心里就踏实」", "s": {"j": 3}}, {"t": "「再看看，说不定有变化」", "s": {"p": 3}}], "pair": "JP", "facet": 5, "pos": "A"}, {"t": "做一道没做过的菜，你会？", "o": [{"t": "凭感觉随手发挥，边做边调", "s": {"p": 3}}, {"t": "严格按菜谱一步步来", "s": {"j": 3}}], "pair": "JP", "facet": 5, "pos": "C"}]};
+
+/* ---------- MBTI 浏览器端抽题（2026-10-12 用户裁定：每次打开页面换题组） ----
+   与 mbti_bank.py::pick_questions 同构：构面配额 + 位平衡（每对 A/C 位差≤1）
+   + 全池打散。随机源默认 Math.random（每次打开真随机）；URL 带 ?seed=N 时
+   用 mulberry32 可播种 RNG（复现指定题组，调试/取证用）。分值已在题池
+   数据里翻转好，此处只抽不改。 */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function mbtiPick(){
+  var sp=(location.search.match(/[?&]seed=(\d+)/)||[])[1];
+  var rand=(sp!==undefined)?mulberry32(+sp):Math.random;
+  function shuf(arr){for(var i=arr.length-1;i>0;i--){var j=Math.floor(rand()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}return arr;}
+  var n={'初':4,'中':5,'高':6}[MBTI_META.level]||5;
+  var quota;
+  if(n===5)quota=[1,1,1,1,1];
+  else if(n===4){quota=[0,0,0,0,0];shuf([0,1,2,3,4]).slice(0,4).forEach(function(f){quota[f]=1;});}
+  else{quota=[1,1,1,1,1];quota[Math.floor(rand()*5)]+=1;}
+  var out=[];
+  ['EI','SN','TF','JP'].forEach(function(pair){
+    var total=n,wantA=Math.ceil(total/2),nA=0,chosen=[];
+    quota.forEach(function(k,facet){
+      var pool=shuf(MBTI_BANK.pool.filter(function(q){return q.pair===pair&&q.facet===facet+1;}).slice());
+      for(var i=0;i<k&&pool.length;i++){
+        var pref=nA<wantA?'A':'C',got=null;
+        for(var j=0;j<pool.length;j++){if(pool[j].pos===pref){got=pool.splice(j,1)[0];break;}}
+        if(!got)got=pool.pop();
+        if(got.pos==='A')nA++;
+        chosen.push(got);
+      }
+    });
+    out=out.concat(shuf(chosen));
+  });
+  return shuf(out).map(function(q){return {text:q.t,options:q.o};});
+}
+if(MBTI_META.on&&typeof MBTI_BANK!=='undefined'&&MBTI_BANK&&MBTI_BANK.pool){
+  QUESTIONS=mbtiPick();
+}
+/* ---------- 自适应补充确认（2026-10-12 用户裁定）：20 题答完，作答接近
+   均势的维度对（diff<0.15）各追加最多 4 题确认（从题池剩余题构面轮转抽，
+   位平衡），合并计分后判型——蒙特卡洛实测边界人群一致率 40%→55%，
+   偏好明确用户不触发、依然只答 20 题（官方 Form Q 短版同思路）。 */
+var baseN=0,confirmN=0,confirmPairs=[];
+function mbtiConfirmPick(pairIds,perPair){
+  var out=[];
+  pairIds.forEach(function(pid){
+    var used={};
+    QUESTIONS.forEach(function(q){used[q.text]=1;});
+    var byFacet={};
+    MBTI_BANK.pool.forEach(function(q){
+      if(q.pair!==pid||used[q.t])return;
+      (byFacet[q.facet]=byFacet[q.facet]||[]).push(q);
+    });
+    var got=0,nA=0;
+    for(var round=0;got<perPair;round++){
+      var any=false;
+      for(var f=1;f<=5&&got<perPair;f++){
+        var arr=byFacet[f];
+        if(!arr||!arr.length)continue;
+        var pref=(nA*2<got+1)?'A':'C',q=null;
+        for(var j=0;j<arr.length;j++){if(arr[j].pos===pref){q=arr.splice(j,1)[0];break;}}
+        if(!q)q=arr.splice(Math.floor(Math.random()*arr.length),1)[0];
+        if(q.pos==='A')nA++;
+        out.push(q);got++;any=true;
+      }
+      if(!any)break;
+    }
+  });
+  return out.map(function(q){return {text:q.t,options:q.o};});
+}
+function showConfirm(edge,n){
+  var names=edge.map(function(p){return '<b>'+p.an+'-'+p.bn+'</b>';}).join('、');
+  document.getElementById('confirmDesc').innerHTML=
+    '你在'+names+(edge.length>1?'这几个维度':'这个维度')
+    +'上的作答接近均势——再答 <b>'+n+'</b> 道补充题，把摇摆的倾向定下来。'
+    +'答案依旧没有对错，按第一反应选。';
+  show('screen-confirm');
+  document.getElementById('confirmBtn').onclick=function(){
+    show('screen-quiz');renderQuestion();
+  };
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+/* ---------- MBTI 专业模式：判型=维度计分确定性映射（不走向量匹配） ----
+   与 mbti_bank.py::judge_mbti 同逻辑，阈值改动必须两侧同步：
+   清晰对=分化度≥0.30；清晰度高=清晰对≥3 且最弱对≥0.28（≈74% 同向，净胜
+   一题的边缘对不得判偏好成型）；清晰度初=清晰对≤1 或最弱对<0.06；
+   清晰度档=官方 PCI 偏好清晰度的中性档位化（非人格等级），类型始终由
+   四对计分的高分字母决定——机制上不可能偏离 MBTI 类型学。 */
+function mbtiJudge(scores){
+  var pairs=MBTI_META.pairs,code='',diffs=[];
+  pairs.forEach(function(p){
+    var sa=scores[p.a]||50,sb=scores[p.b]||50;
+    code+= sa>=sb? p.A : p.B;
+    diffs.push(Math.abs(sa-sb)/(sa+sb));
+  });
+  var clear=0;
+  diffs.forEach(function(d){ if(d>=0.30)clear++; });
+  var weakest=Math.min.apply(null,diffs);
+  var tier=(clear>=3&&weakest>=0.28)?'高':((clear<=1||weakest<0.06)?'初':'中');
+  return {code:code,tier:tier,diffs:diffs,pairs:pairs};
+}
+function answerRatio(p){
+  /* 作答占比（题数比口径）：轴显示用它而不是归一分占比——归一基线 25 会
+     把分化压扁（7:2 实际 78% 显示成 67%），读起来比重弱，2026-10-12 修 */
+  var a=0,b=0;
+  QUESTIONS.forEach(function(q,ki){
+    var o=q.options[picks[ki]];
+    if(!o)return;
+    a+=o.s[p.a]||0; b+=o.s[p.b]||0;
+  });
+  var tot=a+b;
+  return {ra:tot?Math.round(a/tot*100):50,aLead:a>=b};
+}
+function axisRow(p){
+  var ar=answerRatio(p),ra=ar.ra,aLead=ar.aLead;
+  /* 临界标记：作占比 40-60%（3:2 到 2:3 的边界带），该字母仅供参考——
+     2026-10-12 用户认真作答判「初」后要求更直白地区分确定/摇摆维度 */
+  var edge=Math.abs(ra-50)<=10;
+  return '<div class="axis-row">'
+    +'<span class="axis-lab'+(aLead&&!edge?' lead':'')+'">'+p.an+'</span>'
+    +'<div class="axis-track">'
+    +'<i class="axis-fill l'+(aLead?' lead':'')+'" data-w="'+ra+'"></i>'
+    +'<i class="axis-fill r" data-w="'+(100-ra)+'"></i>'
+    +'<span class="axis-mid"></span>'
+    +'<span class="axis-dot'+(edge?' edge':'')+'" data-x="'+ra+'"></span></div>'
+    +'<span class="axis-lab'+(!aLead&&!edge?' lead':'')+'">'+p.bn+'</span>'
+    +'<span class="axis-val'+(edge?' edge':'')+'">'+ra+'%:'+(100-ra)+'%'
+    +(edge?'<em>临界</em>':'')+'</span></div>';
+}
+function buildMbtiResultHTML(fig,mb,scores,elems,picks){
+  var tm=(MBTI_META.tierMeta&&MBTI_META.tierMeta[mb.tier])||{};
+  var axesHTML=mb.pairs.map(function(p){return axisRow(p);}).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var funcsHTML='';
+  if(MBTI_META.level==='高'&&fig.funcs&&fig.funcs.length){
+    var caps=['主导功能','辅助功能','第三功能','劣势功能'];
+    funcsHTML='<div class="card"><div class="card-label">认 知 功 能 栈</div>'
+      +fig.funcs.map(function(f,i){
+        return '<div class="func-row"><span class="func-cap'+(i===0?' lead':'')+'">'+(caps[i]||'')+'</span>'
+          +'<span class="func-name">'+f+'</span></div>';
+      }).join('')+'</div>';
+  }
+  var why='四对维度计分：'+mb.pairs.map(function(p){
+      var ar=answerRatio(p);
+      return p.an+' <b>'+ar.ra+'% : '+(100-ar.ra)+'%</b> '+p.bn;
+    }).join('；')+'——每对里高的一侧进入你的类型代码，这就是 <b>'+mb.code+'</b> 的由来。';
+  var levelName={'初':'速测版','中':'标准版','高':'深度版'}[MBTI_META.level]||'标准版';
+  /* 动态点名临界对：让「认真作答却判初」的用户直接看到哪几个字母不可靠、
+     以及与其他测评结果的差异会落在哪（2026-10-12 用户实测反馈） */
+  var edgePairs=mb.pairs.filter(function(p,i){return mb.diffs[i]<0.15;})
+    .map(function(p){return p.an+'-'+p.bn;});
+  var edgeNote='';
+  if(confirmN){
+    /* 补充确认标注独立显示：确认后分化拉开（edgePairs 空）时也不能丢 */
+    edgeNote='<div class="hr"></div><p class="el-note">已对 <b>'+confirmPairs.length
+      +'</b> 个临界维度补充 <b>'+confirmN+'</b> 题确认后合并计分——把接近均势'
+      +'的倾向定了下来。</p>';
+  }
+  if(edgePairs.length){
+    edgeNote+='<div class="hr"></div><p class="el-note">本次作答接近均势的维度：<b>'
+      +edgePairs.join('、')+'</b>——这几个字母仅供参考，隔期重测可能换边；'
+      +'若你曾做过其他 MBTI 测评，与本结果不同的字母，通常就落在这些临界'
+      +'维度上。两次重测一致的字母，才是你的确定偏好。</p>';
+  }
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">你 的 人 格 类 型</p>'
+    +'<div class="res-code">'+mb.code+'</div>'
+    +'<div><span class="tier-badge">'+(tm.badge||('清晰度 · '+mb.tier))+'</span></div>'
+    +'<h2 class="res-name xl">'+(fig.era||fig.name)+'</h2>'
+    +'<p class="res-role">'+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">清 晰 度 解 读</div>'
+    +'<p class="tier-desc">'+(tm.desc||'')+'</p>'
+    +edgeNote
+    +'<div class="hr"></div><p class="el-note">'+levelName+' · '
+    +QUESTIONS.length+'题 · '+DIMS.length+'维迫选计分</p></div>'
+    +'<div class="card"><div class="card-label">四 维 倾 向 轴</div>'+axesHTML+'</div>'
+    +elsHTML
+    +funcsHTML
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 '+mb.code+'</div>'
+    +'<p class="explain">'+why+'<br><br>'+fig.match+'</p></div>'
+    +'<div class="disclaimer">类型描述认知偏好，16型无优劣之分；<br>清晰度反映偏好的明确程度，不是人格的高度。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">PERSONALITY TYPE ASSESSMENT</p>';
+}
+function clipTxt(s,n){s=String(s);return s.length<=n?s:s.slice(0,n-1)+'…';}
+function calcElements(scores){
+  /* 核心考察元素满足度（2026-10-10 定稿）：每个元素 = mix 挂的计分维度按
+     权重线性组合。维度分本身在 18-99 归一量表上，组合值直接就是「做题人
+     对该元素的满足程度%」。不做 v/Σv 份额归一——归一维度分上各元素份额
+     结构性趋同（实测五个全 20%，零信息量，恰是用户点名的套路观感） */
+  if(!ELEMENTS||!ELEMENTS.length)return [];
+  var raw=ELEMENTS.map(function(e){
+    var s=0,w=0;
+    for(var k in e.mix){s+=(scores[k]||0)*e.mix[k];w+=e.mix[k];}
+    var v=w>0?s/w:0;
+    return {e:e,v:v,pct:Math.max(8,Math.min(97,Math.round(v)))};
+  });
+  raw.sort(function(a,b){return b.pct-a.pct;});
+  return raw;
+}
+function pickEvidence(elem,picks){
+  /* 证据题回指：做题人被选中的选项里，哪些恰好压在该元素 mix 最高的
+     计分维度上（权重≥2）——解读据此点名「第N题你选了…」，不再千篇一律 */
+  var dims=Object.keys(elem.mix).sort(function(a,b){return elem.mix[b]-elem.mix[a];});
+  var out=[];
+  picks.forEach(function(idx,qi){
+    if(idx==null)return;
+    var q=QUESTIONS[qi],o=q&&q.options[idx];
+    if(!o)return;
+    var hit=dims.some(function(d){return (o.s&&o.s[d]||0)>=2;});
+    if(hit)out.push({qi:qi,t:o.t});
+  });
+  return out;
+}
+function buildExplain(scores,fig,picks,elems){
+  var head;
+  if(elems&&elems.length){
+    var e1=elems[0].e,e2=elems.length>1?elems[1].e:null;
+    var ev=pickEvidence(e1,picks).slice(0,2);
+    var d1=String(e1.desc).replace(/[。．.]$/,'');
+    head='在这场测试里，你的选择最集中落在<b>「'+e1.name+'」（满足度 '+elems[0].pct+'%）</b>'
+      +(e2?'，其次是<b>「'+e2.name+'」（'+elems[1].pct+'%）</b>':'')
+      +'——'+d1+'。';
+    ev.forEach(function(x){
+      head+='第'+(x.qi+1)+'题你选了「'+clipTxt(x.t,16)+'」，正是「'+e1.name+'」在你身上的样子。';
+    });
+  }else{
+    var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+    var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+    head='你的'+DIMS.length+'维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>'
+      +(d2?'、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出':'最为突出')
+      +(d3?'，「'+d3.name+'」'+scores[d3.key]+' 分紧随其后':'')+'。'
+      +(d2?'在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+      +'第二步才用'+d2.name+'去收尾。':'');
+  }
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores,elems,picks){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  var dimLabel=(DIMS.length>=10?DIMS.length:'一二三四五六七八九'.charAt(DIMS.length-1))+' 维 倾 向';
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+      +'<h2 class="res-name'+((fig.name||'').length<=3?' xl':'')+'">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +elsHTML
+    +'<div class="card"><div class="card-label">'+dimLabel+'</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig,picks,elems)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">PERSONALITY TYPE ASSESSMENT</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill,.axis-fill');
+  var dots=document.querySelectorAll('.axis-dot');
+  fills.forEach(function(el){el.style.width='0%';});
+  dots.forEach(function(el){el.style.left='50%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+      dots.forEach(function(el){el.style.left=el.getAttribute('data-x')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  if(confirmN&&current>=baseN){
+    document.getElementById('qIndex').textContent='补充 '+(current-baseN+1);
+    document.getElementById('qTotal').textContent=confirmN;
+  }else{
+    document.getElementById('qIndex').textContent=current+1;
+    document.getElementById('qTotal').textContent=QUESTIONS.length;
+  }
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var mb0=mbtiJudge(scores);
+  /* 自适应确认：首轮到末尾且有边界对 → 追加确认题继续答；确认轮直接出结果 */
+  if(MBTI_META&&MBTI_META.on&&!confirmN
+     &&typeof MBTI_BANK!=='undefined'&&MBTI_BANK&&MBTI_BANK.pool){
+    var edge=mb0.pairs.filter(function(p,i){return mb0.diffs[i]<0.15;});
+    if(edge.length){
+      var cq=mbtiConfirmPick(edge.map(function(p){return p.A+p.B;}),4);
+      if(cq.length>=2){
+        confirmPairs=edge.map(function(p){return p.A+p.B;});
+        confirmN=cq.length;baseN=QUESTIONS.length;
+        QUESTIONS=QUESTIONS.concat(cq);
+        document.getElementById('progressBar').style.width=
+          (baseN/QUESTIONS.length*100)+'%';
+        showConfirm(edge,cq.length);
+        return;
+      }
+    }
+  }
+  var elems=calcElements(scores);
+  var res=document.getElementById('resultBody');
+  if(MBTI_META&&MBTI_META.on){
+    /* MBTI 模式：判型不走向量最近匹配——计分→四字母→按 name 直取 figure */
+    var mb=mbtiJudge(scores);
+    var fig=null;
+    for(var i=0;i<FIGURES.length;i++){ if(FIGURES[i].name===mb.code){fig=FIGURES[i];break;} }
+    if(!fig)fig=FIGURES[0];
+    res.innerHTML=buildMbtiResultHTML(fig,mb,scores,elems,picks);
+  }else{
+    var r=findMatch(scores);
+    res.innerHTML=buildResultHTML(r.fig,r.pct,scores,elems,picks);
+  }
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;
+    /* 重测也换新题组（MBTI 模式）：两次重测一致的字母才是确定偏好；
+       补充确认状态一并复位 */
+    if(MBTI_META.on&&typeof MBTI_BANK!=='undefined'&&MBTI_BANK&&MBTI_BANK.pool){
+      QUESTIONS=mbtiPick();
+    }
+    confirmN=0;confirmPairs=[];baseN=0;
+    show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  confirmN=0;confirmPairs=[];baseN=0;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
