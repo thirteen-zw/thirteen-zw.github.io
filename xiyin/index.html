@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#f4e2de" />
+<title>你会被哪种人吸引？ 心动类型鉴定</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#f4e2de;
+    --card:#bfbfbf;
+    --accent:#d94f5c;
+    --accent-dim:#b05560;
+    --text:#3a2e2a;
+    --text-dim:#74655d;
+    --line:#d94f5c29;
+    --title-font:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, #d94f5c1c, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 110%, #d94f5c0e, transparent 70%);
+  }
+  .app{
+    position:relative;z-index:1;
+    max-width:520px;margin:0 auto;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 40px);
+  }
+  /* 屏切换：display 只由 .screen/.screen.active 控制，任何内容类不得碰 display */
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadeUp .5s cubic-bezier(.22,.9,.3,1);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  /* ---------- 封面 ---------- */
+  .cover{padding-top:52px;text-align:center;}
+  .cover-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent-dim);margin-bottom:30px;font-weight:500;}
+  .cover-title{
+    font-family:var(--title-font);
+    font-size:29px;line-height:1.55;font-weight:600;letter-spacing:1px;
+    color:var(--accent);
+  }
+  .cover-sub{margin-top:26px;font-size:14px;line-height:2;color:var(--text-dim);}
+  .cover-quote{
+    margin:24px auto 0;max-width:88%;
+    font-family:var(--title-font);
+    font-size:15px;line-height:2;color:var(--text);
+    border-left:2px solid var(--accent-dim);border-right:2px solid var(--accent-dim);
+    padding:6px 14px;
+  }
+  .cover-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px;font-size:12px;color:var(--accent-dim);}
+  .cover-meta i{width:3px;height:3px;border-radius:50%;background:var(--accent-dim);opacity:.6;}
+  .btn-primary{
+    display:block;width:100%;margin-top:38px;
+    padding:17px 0;border:none;border-radius:999px;
+    background:var(--accent);color:var(--btn-ink,#231c0d);
+    font-size:16px;font-weight:700;letter-spacing:3px;font-family:inherit;
+    box-shadow:0 10px 30px -10px #d94f5c99;
+    transition:transform .18s ease;
+  }
+  .btn-primary:active{transform:scale(.975);}
+  .cover-note{margin-top:20px;font-size:11px;line-height:1.9;color:var(--text-dim);opacity:.75;}
+
+  /* ---------- 答题 ---------- */
+  .progress{height:3px;border-radius:3px;background:#00000014;overflow:hidden;}
+  .progress-bar{height:100%;width:0;border-radius:3px;background:var(--accent);transition:width .4s cubic-bezier(.22,.9,.3,1);}
+  .q-index{margin-top:12px;font-size:12px;color:var(--accent-dim);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+  .q-text{
+    font-family:var(--title-font);
+    font-size:20px;line-height:1.72;font-weight:600;
+    margin:24px 0 26px;letter-spacing:.4px;
+    /* 贴字实影层（10-12）：浅色主题下 CJK 抗锯齿把 5% 分位稀释到 ~97，
+       像素门 4.0 拦下（yinxiang 实测 239/90=2.6）。加 1px 近实心暗描边
+       让字形周边形成足够 ≤59 明度的覆盖；深色主题下黑影不可见，无副作用。 */
+    text-shadow:0 0 1px rgba(0,0,0,.75),0 1px 2px rgba(0,0,0,.6),0 2px 12px rgba(0,0,0,.45);
+  }
+  .opts{display:flex;flex-direction:column;gap:12px;}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
+    font-family:inherit;background:var(--card);
+    border:1px solid var(--line);color:var(--text);
+    padding:16px;border-radius:15px;font-size:15px;line-height:1.65;
+    box-shadow:0 10px 26px -14px rgba(0,0,0,.5);
+    transition:transform .16s ease,border-color .2s ease,background .2s ease;
+  }
+  .opt:active{transform:scale(.98);}
+  .opt.selected{border-color:var(--accent);background:#d94f5c26;box-shadow:0 0 0 1px var(--accent) inset;}
+  .opt-idx{
+    flex:0 0 21px;height:21px;border-radius:50%;margin-top:3px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;
+  }
+  .opt.selected .opt-idx{background:var(--accent);color:var(--btn-ink,#231c0d);border-color:var(--accent);}
+  .opt-text{flex:1;}
+  .fade-in{animation:fadeUp .38s cubic-bezier(.22,.9,.3,1);}
+  /* 答题页背景图：沉在内容之下（z-index:-1——定位元素若 z≥0 会绘制在
+     普通流文字上面，等于给文字蒙纱，2026-10-08 用户两轮打回的根因）。
+     遮罩色在渲染期拼成完整 8 位 hex（CSS var 不能拼半个 token）。
+     顶部纱重保题面干净，底部纱轻让背景透出来（选项卡本身不透明） */
+  .quiz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .quiz-bg img{width:100%;height:100%;object-fit:cover;opacity:.40;}
+  .quiz-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#f4e2dee6 0%,#f4e2de8c 60%,#f4e2de59 100%);}
+  #screen-quiz{position:relative;z-index:1;}
+  /* 结果页背景图：与答题页同构（z-index:-1 沉底 + 渐变纱压图不压字），
+     三图体系第三张——揭晓时刻的归宿角落；透明度更低：结果文字量大，
+     背景只做氛围（2026-10-10） */
+  .res-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+  .res-bg img{width:100%;height:100%;object-fit:cover;opacity:.30;}
+  .res-bg::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,#f4e2dee6 0%,#f4e2de8c 55%,#f4e2de59 100%);}
+  #screen-result{position:relative;z-index:1;}
+
+  /* ---------- 结果 ---------- */
+  .res-top{text-align:center;padding:20px 0 4px;}
+  .res-eyebrow{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-bottom:18px;}
+  .res-score{
+    font-family:var(--title-font);
+    font-size:62px;font-weight:700;line-height:1;letter-spacing:-2px;color:var(--accent);
+    font-variant-numeric:tabular-nums;
+  }
+  .res-score em{font-size:24px;font-style:normal;margin-left:2px;}
+  .res-score-label{font-size:11px;letter-spacing:4px;color:var(--accent-dim);margin-top:6px;}
+  .res-name{font-family:var(--title-font);font-size:31px;font-weight:600;letter-spacing:5px;margin:22px 0 8px;}
+  .res-name.xl{font-size:48px;letter-spacing:10px;}
+  .res-role{font-size:12.5px;color:var(--text-dim);letter-spacing:.6px;}
+  .res-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .res-tags span{font-size:12px;padding:4px 13px;border-radius:999px;border:1px solid var(--line);color:var(--accent);background:#d94f5c14;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;margin-top:14px;}
+  .card-label{font-size:10.5px;letter-spacing:3px;color:var(--accent-dim);margin-bottom:12px;font-weight:600;}
+  .hr{height:1px;background:var(--line);margin:18px 0;}
+  .voice{
+    font-family:var(--title-font);font-size:16.5px;line-height:1.85;
+    border-left:2px solid var(--accent-dim);padding-left:14px;letter-spacing:.5px;
+  }
+  .bars{display:flex;flex-direction:column;gap:11px;}
+  /* 核心元素卡：元素名 2-5 字比维度名长，名区放宽；占比条与维度条共用骨架 */
+  .el-card .bar-name{flex-basis:60px;}
+  .el-note{font-size:11.5px;line-height:1.9;color:var(--text-dim);margin-top:12px;}
+  .bar-row{display:flex;align-items:center;gap:10px;}
+  .bar-name{flex:0 0 34px;font-size:12.5px;color:var(--text-dim);letter-spacing:1px;}
+  .bar-name.lead{color:var(--accent);font-weight:700;}
+  .bar-track{flex:1;height:7px;border-radius:7px;background:#00000014;overflow:hidden;}
+  .bar-fill{display:block;height:100%;width:0;border-radius:7px;background:var(--accent-dim);transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .bar-fill.lead{background:var(--accent);}
+  .bar-val{flex:0 0 26px;text-align:right;font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .bar-val.lead{color:var(--accent);font-weight:700;}
+  /* ---------- MBTI 专业模式 ---------- */
+  .res-code{
+    font-family:var(--title-font);
+    font-size:54px;font-weight:700;line-height:1.1;letter-spacing:10px;
+    color:var(--accent);margin-top:8px;font-variant-numeric:tabular-nums;
+  }
+  .tier-badge{
+    display:inline-block;margin-top:14px;padding:5px 16px;border-radius:999px;
+    border:1px solid var(--accent-dim);color:var(--accent);
+    font-size:12.5px;letter-spacing:2px;
+  }
+  .axis-row{display:flex;align-items:center;gap:9px;margin:9px 0;}
+  .axis-lab{flex:0 0 30px;font-size:12px;color:var(--text-dim);text-align:center;letter-spacing:1px;}
+  .axis-lab.lead{color:var(--accent);font-weight:700;}
+  .axis-track{flex:1;height:7px;border-radius:7px;background:#00000014;position:relative;overflow:hidden;}
+  .axis-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--accent-dim);opacity:.55;z-index:2;}
+  /* 端部填充（从两侧边缘向内覆盖到占比位置）+ 滑块点：中间延伸式填充在
+     55-70% 常见区间只有百分之几宽，视觉几乎不可见（10-12 首跑目视打回） */
+  .axis-fill{position:absolute;top:0;height:100%;width:0;transition:width .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-fill.l{left:0;background:var(--accent-dim);opacity:.45;}
+  .axis-fill.l.lead{background:var(--accent);opacity:.85;}
+  .axis-fill.r{right:0;background:var(--accent-dim);opacity:.18;}
+  .axis-dot{position:absolute;top:50%;left:0;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#ffffff;box-shadow:0 0 6px var(--accent);z-index:3;transition:left .9s cubic-bezier(.22,.9,.3,1);}
+  .axis-val{flex:0 0 56px;text-align:right;font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums;}
+  .func-row{display:flex;align-items:center;gap:12px;margin:8px 0;}
+  .func-cap{flex:0 0 64px;font-size:11.5px;color:var(--text-dim);letter-spacing:1px;}
+  .func-cap.lead{color:var(--accent);font-weight:700;}
+  .func-name{font-size:14px;color:var(--text);}
+  .tier-desc{font-size:13.5px;line-height:2;color:var(--text);text-align:justify;}
+  .explain{font-size:14.5px;line-height:2.05;color:var(--text);letter-spacing:.3px;text-align:justify;}
+  .explain b{color:var(--accent);font-weight:600;}
+  .disclaimer{
+    margin-top:18px;padding:14px 16px;border-radius:12px;
+    background:#d94f5c14;border:1px dashed var(--line);
+    font-size:11.5px;line-height:1.9;color:var(--text-dim);text-align:center;
+  }
+  .btn-ghost{
+    display:block;width:100%;margin-top:22px;padding:15px 0;border-radius:999px;
+    background:transparent;border:1px solid var(--line);color:var(--accent);
+    font-size:14px;letter-spacing:2px;font-family:inherit;
+    transition:background .2s ease,transform .16s ease;
+  }
+  .btn-ghost:active{background:#d94f5c14;transform:scale(.98);}
+  .foot-mark{text-align:center;font-size:10.5px;color:var(--text-dim);letter-spacing:2px;margin-top:26px;opacity:.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="screen-cover" class="screen active">
+    <div class="cover">
+      <img class="hero-img" src="img/hero.png" alt="cover art">
+      <p class="cover-eyebrow">心动研究所</p>
+      <h1 class="cover-title">你会被哪种人吸引？<br>心动类型鉴定</h1>
+      <p class="cover-sub">潜意识心动开关大公开<br>测测谁一出场你就沦陷</p>
+      <div class="cover-quote">心动从不讲道理，却总在某个瞬间暴露你的偏好。</div>
+      <div class="cover-meta"><span>共 14 题</span><i></i><span>约 3 分钟</span></div>
+      <button class="btn-primary" id="startBtn">开始心动</button>
+      <p class="cover-note">本测试纯属娱乐，心动的类型仅供参考</p>
+    </div>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bg"><img src="img/quizbg.png" alt=""></div>
+    <div class="quiz-head">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="q-index"><span id="qIndex">1</span> / <span id="qTotal">10</span></div>
+    </div>
+    <div id="qBody"></div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="res-bg"><img src="img/resbg.png" alt=""></div>
+    <div id="resultBody"></div>
+  </section>
+
+  <style>
+    /* 文件夹模式的图片位（单文件无图时不渲染对应节点） */
+    .hero-img{display:block;width:82%;max-width:340px;margin:0 auto 6px;border-radius:14px;
+      box-shadow:0 14px 34px -18px #d94f5c99;}
+  </style>
+
+</div>
+
+<script>
+var DIMS=[{"key": "zx", "name": "智性偏好"}, {"key": "aq", "name": "安全感"}, {"key": "qw", "name": "趣味契合"}, {"key": "bz", "name": "被照顾欲"}, {"key": "fz", "name": "征服欲"}, {"key": "yk", "name": "颜控度"}];
+var QUESTIONS=[{"text": "深夜书店只剩三个人，你的目光最先被谁钉住？", "options": [{"t": "靠窗翻哲学书、眉间微蹙的人", "s": {"zx": 3, "fz": 1, "aq": 1}}, {"t": "蹲在角落给流浪猫喂食的人", "s": {"bz": 3, "aq": 2, "qw": 1}}, {"t": "站在畅销榜前翻画册、侧脸好看的人", "s": {"yk": 3, "qw": 1, "fz": 1}}]}, {"text": "线上匹配聊了三天，哪种对话让你忍不住一直回？", "options": [{"t": "他抛出一个你从没想过的观点，聊到凌晨", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "他发来一只猫摔倒的沙雕视频，你笑出声", "s": {"qw": 3, "bz": 1, "aq": 1}}, {"t": "他记得你提过怕冷，提醒你加衣", "s": {"bz": 3, "aq": 2, "zx": 1}}]}, {"text": "第一次约会，对方把地点选在哪里你会心跳加速？", "options": [{"t": "安静的美术馆，边看边低声交换看法", "s": {"zx": 3, "aq": 2, "fz": 1}}, {"t": "游乐园夜场，坐完过山车一起尖叫大笑", "s": {"qw": 3, "fz": 1, "aq": 1}}, {"t": "他亲自下厨，说想让你尝尝他的手艺", "s": {"bz": 3, "aq": 2, "qw": 1}}]}, {"text": "哪一幕让你突然觉得「就是这个人了」？", "options": [{"t": "他讲起自己专业领域时眼里有光", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "平时很稳的人突然对你做了个鬼脸", "s": {"qw": 3, "zx": 1, "bz": 1}}, {"t": "他记得你随口说过的奶茶口味", "s": {"bz": 3, "aq": 2, "zx": 1}}]}, {"text": "如果只能选一个心动特质，你会怎么选？", "options": [{"t": "聪明，聊什么都能接住", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "好笑，跟他在一起永远不无聊", "s": {"qw": 3, "bz": 1, "fz": 1}}, {"t": "好看，光是看着就心情好", "s": {"yk": 3, "fz": 1, "qw": 1}}]}, {"text": "吵架之后，对方哪种反应最能让你消气？", "options": [{"t": "先冷静分析问题出在哪，再谈感受", "s": {"zx": 3, "aq": 2, "fz": 1}}, {"t": "先哄你，等你情绪好了再慢慢讲理", "s": {"bz": 3, "aq": 2, "qw": 1}}, {"t": "不逼你，安静等你愿意开口给台阶", "s": {"aq": 3, "bz": 1, "fz": 1}}]}, {"text": "你意识到自己沦陷了，通常是因为哪个瞬间？", "options": [{"t": "被对方的智商和见识碾压的那一刻", "s": {"zx": 3, "fz": 2, "yk": 1}}, {"t": "对方笨拙但认真地为你做一件小事", "s": {"bz": 3, "aq": 2, "qw": 1}}, {"t": "对方抬眼看向你，颜值暴击的一秒", "s": {"yk": 3, "fz": 1, "qw": 1}}]}, {"text": "你理想中的恋爱关系，更接近哪一种？", "options": [{"t": "并肩成长的伙伴，互相推着往前走", "s": {"zx": 3, "aq": 2, "fz": 1}}, {"t": "快乐至上的玩伴，一起把日子过成段子", "s": {"qw": 3, "bz": 1, "aq": 1}}, {"t": "稳稳接住你的港湾，累了随时靠岸", "s": {"bz": 3, "aq": 2, "zx": 1}}]}, {"text": "刷朋友圈时，哪种动态会让你对一个人产生好奇？", "options": [{"t": "一篇有见解的长文，观点犀利", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "搞笑段子手，每条都让人想评论", "s": {"qw": 3, "bz": 1, "fz": 1}}, {"t": "精致的日常照片，生活有质感", "s": {"yk": 3, "aq": 1, "qw": 1}}]}, {"text": "朋友组局，你到场后发现有个陌生人也来了，你会先注意谁？", "options": [{"t": "那个独自坐在角落、气质清冷的人", "s": {"fz": 3, "zx": 2, "yk": 1}}, {"t": "那个主动招呼大家、笑容很暖的人", "s": {"aq": 3, "qw": 2, "bz": 1}}, {"t": "那个穿着很有品味、一眼好看的人", "s": {"yk": 3, "fz": 1, "qw": 1}}]}, {"text": "哪种「被撩到」的方式你最招架不住？", "options": [{"t": "对方用你完全不懂的知识帮你解决问题", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "对方突然靠近，语气软下来叫你名字", "s": {"bz": 3, "yk": 1, "qw": 1}}, {"t": "对方在人群里只对你一个人挑眉笑", "s": {"fz": 3, "yk": 2, "qw": 1}}]}, {"text": "如果对方提出周末一起做一件事，你最想答应哪个？", "options": [{"t": "去听一场小众讲座，然后聊到深夜", "s": {"zx": 3, "fz": 1, "aq": 1}}, {"t": "去夜市从街头吃到街尾，边吃边闹", "s": {"qw": 3, "bz": 1, "yk": 1}}, {"t": "窝在家里，他做饭你打下手", "s": {"bz": 3, "aq": 2, "qw": 1}}]}, {"text": "你更容易对哪种人产生「想靠近又不敢」的感觉？", "options": [{"t": "那种看起来很难被征服的高冷型", "s": {"fz": 3, "zx": 2, "yk": 1}}, {"t": "那种耀眼到让你自愧不如的才华型", "s": {"zx": 3, "fz": 2, "aq": 1}}, {"t": "那种好看得让你不敢直视的类型", "s": {"yk": 3, "fz": 2, "qw": 1}}]}, {"text": "深夜失眠时，你希望收到对方哪种消息？", "options": [{"t": "一段关于你最近困惑的深度分析", "s": {"zx": 3, "fz": 1, "aq": 1}}, {"t": "一张他刚拍的搞笑自拍，配文「陪你」", "s": {"qw": 3, "bz": 2, "yk": 1}}, {"t": "一句「我在，别怕，明天带你去吃好吃的」", "s": {"bz": 3, "aq": 2, "qw": 1}}]}];
+var FIGURES=[{"name": "智性吸引", "era": "脑力磁场", "role": "聊得来是第一生产力", "tags": ["深度对话", "智识共振", "思想碰撞"], "v": {"zx": 96, "aq": 62, "qw": 58, "bz": 45, "fz": 70, "yk": 40}, "voice": "你一开口，我就想一直听下去。", "match": "你沦陷的瞬间，往往不是对方多好看，而是他一句话把你带进一个从未想过的世界。你享受那种被智慧牵引的感觉，聊天记录里全是值得回味的句子。比起甜言蜜语，你更吃「我懂你在说什么」这一套。你潜意识里把「聊得来」当作关系的硬通货，因为对你来说，精神上的同频比什么都难替代。你容易被有见解、有深度、能接住你奇思妙想的人吸引，哪怕他外表普通，只要脑子转得够快，你就觉得他浑身发光。你的心动开关藏在每一次高质量的对话里，一旦对方让你觉得「这个人好有意思」，你就会不自觉地想再靠近一点，再聊久一点。"}, {"name": "阳光开朗", "era": "暖阳体质", "role": "行走的小太阳", "tags": ["笑容治愈", "情绪稳定", "快乐源泉"], "v": {"zx": 48, "aq": 88, "qw": 92, "bz": 60, "fz": 35, "yk": 55}, "voice": "他在的地方，天气都变好了。", "match": "你被吸引的方式很直接——对方一笑，你就觉得世界亮了。你受不了整天丧气或情绪忽冷忽热的人，你需要的是那种能把你从低落里捞出来、拉着你往前跑的人。你心动往往发生在很日常的瞬间：他讲了个冷笑话自己先笑，或者在你烦躁时递来一杯奶茶说「没事，有我」。你潜意识里把「快乐」和「稳定」捆绑在一起，觉得能让你笑的人，也一定能让你安心。你容易被阳光、开朗、情绪价值拉满的人吸引，哪怕他不够深刻，只要和他在一起轻松自在，你就觉得这就是对的人。你的心动开关，藏在那些没心没肺的大笑里。"}, {"name": "才华横溢", "era": "舞台高光", "role": "台上发光的人", "tags": ["专业魅力", "崇拜感", "闪闪发光"], "v": {"zx": 90, "aq": 55, "qw": 62, "bz": 40, "fz": 88, "yk": 65}, "voice": "他认真起来的样子，我移不开眼。", "match": "你心动的起点，常常是「崇拜」。当你看到一个人在某个领域里闪闪发光，专注、自信、游刃有余，你的目光就再也挪不开。你迷恋那种「他好厉害」的感觉，甚至有点享受被他的才华压过一头。你潜意识里把「优秀」当作最强的吸引力，觉得和一个能让你仰望的人在一起，自己也会被带着往上走。你容易被有作品、有专长、能在台上发光的人吸引，哪怕他有点傲，你也觉得那是魅力的一部分。你的心动开关，藏在每一次你忍不住感叹「他怎么什么都会」的瞬间。"}, {"name": "温柔守护", "era": "港湾模式", "role": "稳稳接住你的人", "tags": ["细心体贴", "情绪容器", "安心感"], "v": {"zx": 55, "aq": 94, "qw": 50, "bz": 96, "fz": 30, "yk": 48}, "voice": "他一伸手，我就想靠过去。", "match": "你被吸引的方式，是「被接住」。你不需要对方多耀眼，你更需要他在你累的时候递来一个肩膀，在你慌的时候说一句「别怕，我在」。你心动往往发生在那些不起眼的照顾里：他记得你不吃香菜，他提前查好天气提醒你带伞，他在你情绪崩溃时什么都不问只是抱着你。你潜意识里把「安全感」和「被照顾」当作爱的核心，觉得一个人愿意花心思照顾你，才是真的在乎。你容易被温柔、稳定、有耐心的人吸引，哪怕他木讷一点，只要他能稳稳地托住你，你就觉得踏实。你的心动开关，藏在每一次被细心对待的瞬间。"}, {"name": "高冷神秘", "era": "雪山之巅", "role": "越够不着越想赢", "tags": ["距离感", "征服欲", "神秘莫测"], "v": {"zx": 70, "aq": 40, "qw": 45, "bz": 35, "fz": 96, "yk": 62}, "voice": "他越不看我，我越想让他看我。", "match": "你心动的信号，是「想赢」。你容易被那种不轻易对人热情、自带距离感的人吸引，因为他让你产生一种「我要让他对我特别」的冲动。你享受追逐的过程，甚至有点迷恋那种够不着的心痒。你潜意识里把「难征服」当作魅力的证明，觉得太容易得到的人反而没意思。你容易被高冷、神秘、有自己世界的人吸引，哪怕他回应冷淡，你也会替他找理由，觉得他只是慢热。你的心动开关，藏在每一次他偶尔对你露出一丝不同时的心跳加速里。但也要小心，别把「得不到」误当成「非他不可」。"}, {"name": "幽默灵魂", "era": "笑点同频", "role": "笑点同频才是归宿", "tags": ["接梗高手", "沙雕日常", "轻松自在"], "v": {"zx": 60, "aq": 65, "qw": 96, "bz": 55, "fz": 45, "yk": 50}, "voice": "他懂我的每一个梗，这太难得了。", "match": "你被吸引的方式，是「笑到一起」。你受不了那种你抛梗他接不住、你笑他问「你在笑什么」的人。你需要的是一个能和你互相吐槽、一起发疯、把无聊日子过成段子的人。你心动往往发生在很随机的瞬间：他回了一句让你笑到捶桌的话，或者你们在人群里对视一眼就懂彼此在想什么。你潜意识里把「趣味契合」当作关系的灵魂，觉得能让你笑的人，才值得你花时间。你容易被幽默、机灵、有梗的人吸引，哪怕他不够稳重，只要和他在一起永远不无聊，你就觉得这就是心动。你的心动开关，藏在每一次你们同时笑出声的默契里。"}, {"name": "强人气场", "era": "慕强本尊", "role": "被他的笃定吸引", "tags": ["掌控感", "决策力", "气场全开"], "v": {"zx": 75, "aq": 88, "qw": 48, "bz": 60, "fz": 92, "yk": 58}, "voice": "他一句话，我就觉得这事稳了。", "match": "你心动的触发点，是「笃定」。你容易被那种说话有分量、做事有章法、在关键时刻能拍板的人吸引。你喜欢他替你拿主意、替你挡掉麻烦的感觉，那种「有他在就不用慌」的气场让你安心又着迷。你潜意识里把「强」和「可靠」绑在一起，觉得一个人有能力掌控局面，才值得你托付。你容易被自信、果断、有领导力的人吸引，哪怕他有点强势，你也觉得那是安全感的来源。你的心动开关，藏在每一次他轻描淡写解决掉你头疼的问题时。你慕强，但你更需要的是他强得愿意护着你。"}, {"name": "奶狗系", "era": "黏人模式", "role": "想宠着的那种", "tags": ["撒娇可爱", "满眼是你", "想揉头"], "v": {"zx": 45, "aq": 70, "qw": 85, "bz": 92, "fz": 25, "yk": 68}, "voice": "他眼巴巴看着我的时候，心都化了。", "match": "你被吸引的方式，是「想宠他」。你容易被那种黏人、爱撒娇、满眼都是你的人吸引，因为他让你产生一种强烈的被需要感。你心动往往发生在他示弱的瞬间：他委屈巴巴地说「你今天都没理我」，或者他兴冲冲跟你分享一件小事等你夸。你潜意识里把「被需要」和「被爱」画上等号，觉得一个人愿意在你面前卸下防备，才是真的信任你。你容易被单纯、热情、有点孩子气的人吸引，哪怕他不够成熟，只要他让你觉得「他想被我宠着」，你就忍不住心软。你的心动开关，藏在他对你毫无保留的依赖里。"}, {"name": "痞帅浪子", "era": "危险边缘", "role": "危险吸引力", "tags": ["不羁", "撩人", "若即若离"], "v": {"zx": 58, "aq": 35, "qw": 80, "bz": 30, "fz": 94, "yk": 78}, "voice": "我知道他危险，可我就是想靠近。", "match": "你心动的信号，是「危险又迷人」。你容易被那种带着点痞气、不太按常理出牌、撩人于无形的人吸引。他忽冷忽热，你却总忍不住琢磨他到底怎么想；他随口一句玩笑，你能回味一整晚。你潜意识里把「刺激」当作心动的证据，觉得太乖太稳的人反而让你提不起劲。你容易被不羁、有趣、带点叛逆的人吸引，哪怕你知道他可能不靠谱，也会先被那份新鲜感拽进去。你的心动开关，藏在他那种「我可能抓不住他」的紧张感里。但别忘了，浪子可以为你停，也可能只是路过，心动之后要记得看看他愿不愿意留下。"}, {"name": "纯真直球", "era": "笨拙真诚", "role": "笨拙但真诚", "tags": ["直球告白", "不绕弯子", "憨直可爱"], "v": {"zx": 50, "aq": 82, "qw": 88, "bz": 75, "fz": 28, "yk": 52}, "voice": "他笨笨地说喜欢我，我居然心动了。", "match": "你被吸引的方式，是「真诚」。你容易被那种不怎么会撩、甚至有点笨拙，但每句话都发自真心的人打动。他不懂套路，喜欢你就直接说，想见你就直接约，你反而觉得这种直白比任何技巧都珍贵。你心动往往发生在很朴素的瞬间：他紧张地搓着手问你周末有没有空，或者他憋了半天只憋出一句「你今天真好看」。你潜意识里把「不绕弯子」当作可靠的信号，觉得一个人愿意把心意摊开给你看，就值得认真对待。你容易被简单、直接、有点憨的人吸引，哪怕他不够浪漫，只要他真诚，你就觉得安心。你的心动开关，藏在他那些笨拙却滚烫的直球里。"}, {"name": "爹系可靠", "era": "人生规划", "role": "人生规划型伴侣", "tags": ["成熟稳重", "事事有回应", "规划感"], "v": {"zx": 70, "aq": 96, "qw": 42, "bz": 94, "fz": 55, "yk": 45}, "voice": "他把我的未来也一起考虑了。", "match": "你被吸引的方式，是「被规划进未来」。你容易被那种成熟、稳重、凡事有交代的人吸引，因为他让你觉得生活是有方向的。他不仅照顾你，还会替你想下一步：提醒你考试报名、帮你分析工作选择、记得你家人喜欢什么。你心动往往发生在他替你考虑周全的瞬间，那种「他把我放进他的人生计划里」的感觉，比任何情话都重。你潜意识里把「可靠」和「深爱」画等号，觉得一个人愿意为你负责，才是真的在乎。你容易被有担当、有规划、情绪稳定的人吸引，哪怕他不够浪漫，只要他让你觉得踏实，你就愿意把自己交给他。你的心动开关，藏在他那些替你想到的细节里。"}, {"name": "反差萌系", "era": "聪明人幼稚", "role": "聪明人突然幼稚最致命", "tags": ["高冷破功", "反差暴击", "可爱反差"], "v": {"zx": 88, "aq": 60, "qw": 90, "bz": 65, "fz": 62, "yk": 58}, "voice": "他上一秒还在讲道理，下一秒就撒娇。", "match": "你是那种在人群里先被聪明人吸走目光的人，聊起天来最怕对方接不住你的梗。可真正让你心动的，从来不是一路高冷到底的智者，而是那个讲完专业领域后忽然对你做个鬼脸、认真分析完事情又偷偷给你塞颗糖的人。这种反差像开关，一按你就没辙。你既想要精神层面的同频共振，又舍不得生活里那些没头没脑的快乐，所以半智半憨的人才最要命。你常在心里嘀咕「怎么可以又聪明又可爱」，然后心甘情愿栽进去。别怀疑，你的心动开关就是聪明人偶尔犯傻的那一秒。"}];
+var ELEMENTS=[{"key": "zl", "name": "智性恋浓度", "desc": "被聪明、有见解、聊得来的人吸引的程度", "mix": {"zx": 0.7, "fz": 0.3}}, {"key": "mq", "name": "慕强心理", "desc": "对强势、有能力、能征服你的人的心动倾向", "mix": {"fz": 0.8, "zx": 0.2}}, {"key": "zy", "name": "治愈需求", "desc": "渴望被照顾、被稳稳接住、有安全感的需求", "mix": {"aq": 0.5, "bz": 0.5}}, {"key": "wx", "name": "玩心契合", "desc": "对幽默、好玩、笑点同频的人的吸引力", "mix": {"qw": 0.8, "bz": 0.2}}, {"key": "yk", "name": "颜控指数", "desc": "外表、气质、视觉冲击对你心动的影响权重", "mix": {"yk": 0.7, "fz": 0.3}}];
+var MBTI_META={"on": false};
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function pearson(a,b){
+  var n=a.length,ma=0,mb=0,i;
+  for(i=0;i<n;i++){ma+=a[i];mb+=b[i];}
+  ma/=n;mb/=n;
+  var num=0,da=0,db=0;
+  for(i=0;i<n;i++){var x=a[i]-ma,y=b[i]-mb;num+=x*y;da+=x*x;db+=y*y;}
+  var den=Math.sqrt(da*db);
+  return den<1e-6?0:num/den;
+}
+function calcScores(picks){
+  var raw={},maxp={};
+  DIMS.forEach(function(d){raw[d.key]=0;maxp[d.key]=0;});
+  picks.forEach(function(optIdx,qi){
+    var s=QUESTIONS[qi].options[optIdx].s;
+    for(var k in s)raw[k]+=s[k];
+  });
+  QUESTIONS.forEach(function(q){
+    var per={};
+    DIMS.forEach(function(d){per[d.key]=0;});
+    q.options.forEach(function(o){
+      for(var k in o.s)per[k]=Math.max(per[k],o.s[k]);
+    });
+    DIMS.forEach(function(d){maxp[d.key]+=per[d.key];});
+  });
+  var scores={};
+  DIMS.forEach(function(d){
+    var m=maxp[d.key]||1;
+    var ratio=Math.min(1,raw[d.key]/m);
+    scores[d.key]=Math.max(18,Math.min(99,Math.round(25+ratio*74)));
+  });
+  return scores;
+}
+function findMatch(scores){
+  var uv=DIMS.map(function(d){return scores[d.key];});
+  var best=null,bc=-2;
+  FIGURES.forEach(function(f){
+    var fv=DIMS.map(function(d){return (f.v&&f.v[d.key])||0;});
+    var c=pearson(uv,fv);
+    if(c>bc){bc=c;best=f;}
+  });
+  var pct=Math.round(Math.max(86,Math.min(97,90+bc*7)));
+  return {fig:best,pct:pct};
+}
+/* ---------- MBTI 专业模式：判型=维度计分确定性映射（不走向量匹配） ----
+   与 mbti_bank.py::judge_mbti 同逻辑，阈值改动必须两侧同步：
+   清晰对=分化度≥0.30；高阶=清晰对≥3 且最弱对≥0.28（≈74% 同向，净胜一题
+   的边缘对不得判偏好成型）；初阶=清晰对≤1 或最弱对<0.06；阶位=偏好清晰度
+   档位（MBTI 框架内概念），类型始终由四对计分的高分字母决定——机制上
+   不可能偏离 MBTI 类型学。 */
+function mbtiJudge(scores){
+  var pairs=MBTI_META.pairs,code='',diffs=[];
+  pairs.forEach(function(p){
+    var sa=scores[p.a]||50,sb=scores[p.b]||50;
+    code+= sa>=sb? p.A : p.B;
+    diffs.push(Math.abs(sa-sb)/(sa+sb));
+  });
+  var clear=0;
+  diffs.forEach(function(d){ if(d>=0.30)clear++; });
+  var weakest=Math.min.apply(null,diffs);
+  var tier=(clear>=3&&weakest>=0.28)?'高阶':((clear<=1||weakest<0.06)?'初阶':'中阶');
+  return {code:code,tier:tier,diffs:diffs,pairs:pairs};
+}
+function axisRow(p,scores){
+  var sa=scores[p.a],sb=scores[p.b],tot=sa+sb;
+  var ra=Math.round(sa/tot*100),aLead=sa>=sb;
+  return '<div class="axis-row">'
+    +'<span class="axis-lab'+(aLead?' lead':'')+'">'+p.an+'</span>'
+    +'<div class="axis-track">'
+    +'<i class="axis-fill l'+(aLead?' lead':'')+'" data-w="'+ra+'"></i>'
+    +'<i class="axis-fill r" data-w="'+(100-ra)+'"></i>'
+    +'<span class="axis-mid"></span>'
+    +'<span class="axis-dot" data-x="'+ra+'"></span></div>'
+    +'<span class="axis-lab'+(!aLead?' lead':'')+'">'+p.bn+'</span>'
+    +'<span class="axis-val">'+ra+'%:'+(100-ra)+'%</span></div>';
+}
+function buildMbtiResultHTML(fig,mb,scores,elems,picks){
+  var tm=(MBTI_META.tierMeta&&MBTI_META.tierMeta[mb.tier])||{};
+  var axesHTML=mb.pairs.map(function(p){return axisRow(p,scores);}).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var funcsHTML='';
+  if(MBTI_META.level==='高'&&fig.funcs&&fig.funcs.length){
+    var caps=['主导功能','辅助功能','第三功能','劣势功能'];
+    funcsHTML='<div class="card"><div class="card-label">认 知 功 能 栈</div>'
+      +fig.funcs.map(function(f,i){
+        return '<div class="func-row"><span class="func-cap'+(i===0?' lead':'')+'">'+(caps[i]||'')+'</span>'
+          +'<span class="func-name">'+f+'</span></div>';
+      }).join('')+'</div>';
+  }
+  var why='四对维度计分：'+mb.pairs.map(function(p){
+      return p.an+' <b>'+scores[p.a]+' : '+scores[p.b]+'</b> '+p.bn;
+    }).join('；')+'——每对里高的一侧进入你的类型代码，这就是 <b>'+mb.code+'</b> 的由来。';
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">你 的 人 格 类 型</p>'
+    +'<div class="res-code">'+mb.code+'</div>'
+    +'<div><span class="tier-badge">'+(tm.badge||mb.tier)+'</span></div>'
+    +'<h2 class="res-name xl">'+(fig.era||fig.name)+'</h2>'
+    +'<p class="res-role">'+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">阶 位 解 读</div>'
+    +'<p class="tier-desc">'+(tm.desc||'')+'</p>'
+    +'<div class="hr"></div><p class="el-note">'+MBTI_META.level+'级测评 · '
+    +QUESTIONS.length+'题 · '+DIMS.length+'维迫选计分</p></div>'
+    +'<div class="card"><div class="card-label">四 维 倾 向 轴</div>'+axesHTML+'</div>'
+    +elsHTML
+    +funcsHTML
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 '+mb.code+'</div>'
+    +'<p class="explain">'+why+'<br><br>'+fig.match+'</p></div>'
+    +'<div class="disclaimer">类型描述认知偏好，无优劣之分；<br>阶位反映偏好的清晰程度，不是成熟度上限。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">心动研究所</p>';
+}
+function clipTxt(s,n){s=String(s);return s.length<=n?s:s.slice(0,n-1)+'…';}
+function calcElements(scores){
+  /* 核心考察元素满足度（2026-10-10 定稿）：每个元素 = mix 挂的计分维度按
+     权重线性组合。维度分本身在 18-99 归一量表上，组合值直接就是「做题人
+     对该元素的满足程度%」。不做 v/Σv 份额归一——归一维度分上各元素份额
+     结构性趋同（实测五个全 20%，零信息量，恰是用户点名的套路观感） */
+  if(!ELEMENTS||!ELEMENTS.length)return [];
+  var raw=ELEMENTS.map(function(e){
+    var s=0,w=0;
+    for(var k in e.mix){s+=(scores[k]||0)*e.mix[k];w+=e.mix[k];}
+    var v=w>0?s/w:0;
+    return {e:e,v:v,pct:Math.max(8,Math.min(97,Math.round(v)))};
+  });
+  raw.sort(function(a,b){return b.pct-a.pct;});
+  return raw;
+}
+function pickEvidence(elem,picks){
+  /* 证据题回指：做题人被选中的选项里，哪些恰好压在该元素 mix 最高的
+     计分维度上（权重≥2）——解读据此点名「第N题你选了…」，不再千篇一律 */
+  var dims=Object.keys(elem.mix).sort(function(a,b){return elem.mix[b]-elem.mix[a];});
+  var out=[];
+  picks.forEach(function(idx,qi){
+    if(idx==null)return;
+    var q=QUESTIONS[qi],o=q&&q.options[idx];
+    if(!o)return;
+    var hit=dims.some(function(d){return (o.s&&o.s[d]||0)>=2;});
+    if(hit)out.push({qi:qi,t:o.t});
+  });
+  return out;
+}
+function buildExplain(scores,fig,picks,elems){
+  var head;
+  if(elems&&elems.length){
+    var e1=elems[0].e,e2=elems.length>1?elems[1].e:null;
+    var ev=pickEvidence(e1,picks).slice(0,2);
+    var d1=String(e1.desc).replace(/[。．.]$/,'');
+    head='在这场测试里，你的选择最集中落在<b>「'+e1.name+'」（满足度 '+elems[0].pct+'%）</b>'
+      +(e2?'，其次是<b>「'+e2.name+'」（'+elems[1].pct+'%）</b>':'')
+      +'——'+d1+'。';
+    ev.forEach(function(x){
+      head+='第'+(x.qi+1)+'题你选了「'+clipTxt(x.t,16)+'」，正是「'+e1.name+'」在你身上的样子。';
+    });
+  }else{
+    var sorted=DIMS.slice().sort(function(a,b){return scores[b.key]-scores[a.key];});
+    var d1=sorted[0],d2=sorted[1],d3=sorted[2];
+    head='你的'+DIMS.length+'维倾向里，<b>「'+d1.name+'」'+scores[d1.key]+' 分</b>'
+      +(d2?'、<b>「'+d2.name+'」'+scores[d2.key]+' 分</b>最突出':'最为突出')
+      +(d3?'，「'+d3.name+'」'+scores[d3.key]+' 分紧随其后':'')+'。'
+      +(d2?'在那些必须做取舍的时刻，你的第一反应往往是'+d1.name+'，'
+      +'第二步才用'+d2.name+'去收尾。':'');
+  }
+  return head+'<br><br>'+fig.match;
+}
+function buildResultHTML(fig,pct,scores,elems,picks){
+  var lead=DIMS.reduce(function(a,b){return scores[b.key]>scores[a.key]?b:a;});
+  var barsHTML=DIMS.map(function(d){
+    var v=scores[d.key],isL=d.key===lead.key;
+    return '<div class="bar-row">'
+      +'<span class="bar-name'+(isL?' lead':'')+'">'+d.name+'</span>'
+      +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+v+'"></i></div>'
+      +'<span class="bar-val'+(isL?' lead':'')+'">'+v+'</span></div>';
+  }).join('');
+  var elsHTML='';
+  if(elems&&elems.length){
+    elsHTML='<div class="card el-card"><div class="card-label">核 心 元 素</div><div class="bars">'
+      +elems.map(function(r,i){
+        var isL=i===0;
+        return '<div class="bar-row">'
+          +'<span class="bar-name'+(isL?' lead':'')+'">'+r.e.name+'</span>'
+          +'<div class="bar-track"><i class="bar-fill'+(isL?' lead':'')+'" data-w="'+r.pct+'"></i></div>'
+          +'<span class="bar-val'+(isL?' lead':'')+'">'+r.pct+'%</span></div>';
+      }).join('')
+      +'</div><p class="el-note">'+elems[0].e.name+'——'+elems[0].e.desc
+      +(elems.length>1?'；'+elems[1].e.name+'——'+elems[1].e.desc:'')+'</p></div>';
+  }
+  var tagsHTML=(fig.tags||[]).map(function(t){return '<span>'+t+'</span>';}).join('');
+  var dimLabel=(DIMS.length>=10?DIMS.length:'一二三四五六七八九'.charAt(DIMS.length-1))+' 维 倾 向';
+  return '<div class="res-top">'
+    +'<p class="res-eyebrow">匹 配 结 果</p>'
+    +'<div class="res-score">'+pct+'<em>%</em></div>'
+    +'<div class="res-score-label">匹 配 度</div>'
+      +'<h2 class="res-name'+((fig.name||'').length<=3?' xl':'')+'">'+fig.name+'</h2>'
+    +'<p class="res-role">'+(fig.era||'')+' · '+(fig.role||'')+'</p>'
+    +'<div class="res-tags">'+tagsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">心 声</div>'
+    +'<blockquote class="voice">「'+fig.voice+'」</blockquote></div>'
+    +elsHTML
+    +'<div class="card"><div class="card-label">'+dimLabel+'</div><div class="bars">'+barsHTML+'</div></div>'
+    +'<div class="card"><div class="card-label">为 什 么 是 T A</div>'
+    +'<p class="explain">'+buildExplain(scores,fig,picks,elems)+'</p></div>'
+    +'<div class="disclaimer">相近的是部分选择方式，<br>不代表经历、能力或价值相同。</div>'
+    +'<button class="btn-ghost" id="restartBtn">重 新 测 一 次</button>'
+    +'<p class="foot-mark">心动研究所</p>';
+}
+function animateBars(){
+  var fills=document.querySelectorAll('.bar-fill,.axis-fill');
+  var dots=document.querySelectorAll('.axis-dot');
+  fills.forEach(function(el){el.style.width='0%';});
+  dots.forEach(function(el){el.style.left='50%';});
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      fills.forEach(function(el){el.style.width=el.getAttribute('data-w')+'%';});
+      dots.forEach(function(el){el.style.left=el.getAttribute('data-x')+'%';});
+    },80);
+  });
+}
+var current=0,picks=[],locked=false;
+function renderQuestion(){
+  var q=QUESTIONS[current];
+  document.getElementById('qIndex').textContent=current+1;
+  document.getElementById('qTotal').textContent=QUESTIONS.length;
+  document.getElementById('progressBar').style.width=(current/QUESTIONS.length*100)+'%';
+  var body=document.getElementById('qBody');
+  body.innerHTML='<h2 class="q-text">'+q.text+'</h2><div class="opts" id="opts"></div>';
+  body.classList.remove('fade-in');void body.offsetWidth;body.classList.add('fade-in');
+  var wrap=document.getElementById('opts');
+  q.options.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.type='button';btn.className='opt';
+    btn.innerHTML='<span class="opt-idx">'+String.fromCharCode(65+i)+'</span><span class="opt-text">'+o.t+'</span>';
+    btn.addEventListener('click',function(){choose(i,btn);});
+    wrap.appendChild(btn);
+  });
+}
+function choose(idx,btn){
+  if(locked)return;
+  locked=true;btn.classList.add('selected');picks[current]=idx;
+  setTimeout(function(){
+    locked=false;current++;
+    if(current>=QUESTIONS.length)finish();else renderQuestion();
+  },280);
+}
+function finish(){
+  document.getElementById('progressBar').style.width='100%';
+  var scores=calcScores(picks);
+  var elems=calcElements(scores);
+  var res=document.getElementById('resultBody');
+  if(MBTI_META&&MBTI_META.on){
+    /* MBTI 模式：判型不走向量最近匹配——计分→四字母→按 name 直取 figure */
+    var mb=mbtiJudge(scores);
+    var fig=null;
+    for(var i=0;i<FIGURES.length;i++){ if(FIGURES[i].name===mb.code){fig=FIGURES[i];break;} }
+    if(!fig)fig=FIGURES[0];
+    res.innerHTML=buildMbtiResultHTML(fig,mb,scores,elems,picks);
+  }else{
+    var r=findMatch(scores);
+    res.innerHTML=buildResultHTML(r.fig,r.pct,scores,elems,picks);
+  }
+  show('screen-result');
+  animateBars();
+  var rb=document.getElementById('restartBtn');
+  if(rb)rb.addEventListener('click',function(){
+    current=0;picks=[];locked=false;show('screen-cover');
+  });
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  current=0;picks=[];locked=false;
+  document.getElementById('progressBar').style.width='0%';
+  show('screen-quiz');renderQuestion();
+});
+var lastTouch=0;
+document.addEventListener('touchend',function(e){
+  var now=Date.now();
+  if(now-lastTouch<=300)e.preventDefault();
+  lastTouch=now;
+},{passive:false});
+</script>
+</body>
+</html>
